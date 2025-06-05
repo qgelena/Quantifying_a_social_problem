@@ -1,0 +1,401 @@
+---
+title: "Mental Health and Economic Inequality in High-Income Countries"
+author: "Alona Sychevska, 2769408"
+date: "June 5, 2025"
+output: html_document
+---
+
+```{r warning=FALSE, message = F}
+library(psych)
+library(GGally)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(scales)
+```
+# Title page
+
+Alona Sychevska
+
+Tutorial lecturer's name: Chantal Schouwenaar
+
+# Part 1 - Identify a Social Problem
+
+## 1.1 Describe the Social Problem
+
+Mental health issues such as depression and anxiety are rising in high-income countries. Countries with excellent healthcare infrastructure—like the Netherlands, Germany, or the UK—report increasing rates of psychological distress. 
+
+This project explores whether **economic inequality** (measured by Gini coefficient, poverty rate, etc.) helps explain this rise. It builds on the growing body of research suggesting that **relative deprivation** and **social exclusion** may drive mental illness more than absolute income levels.
+
+**Sources:**
+- WHO Global Health Observatory (depression, anxiety)
+
+- OECD (Gini index, poverty rate)
+
+- Eurostat (health expenditure, mental health indicators)
+
+- Wilkinson & Pickett (The Spirit Level)
+
+---
+
+# EDA (Exploratory Data Analysis)
+
+# Part 2 - Data Sourcing
+
+## 2.1 Load in the data
+
+```{r loading data}
+mental<- read_csv("/home/qgelena/code/VU/R_projects/data/Global-Burden-of-Disease-Study/Global-Burden-of-Disease-Study.csv", show_col_types = FALSE)
+
+inequality <- read_csv("/home/qgelena/code/VU/R_projects/data/GINI/GINI.csv", show_col_types = FALSE)
+```
+# 2.2 Checking the structure of the dataset mental health
+
+```{r}
+dim(mental)
+names(mental)
+head(mental)
+
+unique(mental$measure_name)
+```
+
+# 2.2 Checking the structure of the dataset inequality
+
+```{r}
+dim(inequality)
+names(inequality)
+head(inequality)
+
+```
+
+# 2.2 Provide a short summary of the dataset(s)
+mental: Depression/anxiety prevalence per 100,000 people
+
+inequality: Gini index, poverty rate
+
+expenditure: Health spending per capita / % GDP
+
+Time period: 2000–2023
+
+Countries: Netherlands, UK, Germany, Sweden, US, Japan, etc.
+
+# 2.3 Describe the type of variables included
+
+1. age: age in years, непрерывный признак
+2. sex (1 = male; 0 = female), качественный признак
+3. cp: chest pain type, сердечно сосудистое заболевание, качественный
+-- Value 1: typical angina
+-- Value 2: atypical angina
+-- Value 3: non-anginal pain
+-- Value 4: asymptomatic
+4. trestbps: resting blood pressure (in mm Hg on admission to the hospital), непрерывный
+5. chol: serum cholestoral in mg/dl, сывороточный холестерин, непрерывный
+6. fbs: (fasting blood sugar > 120 mg/dl) (1 = true; 0 = false), сахар в крови натощак, качественный
+7. restecg: resting electrocardiographic results, качественный
+-- Value 0: normal
+-- Value 1: having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV)
+-- Value 2: showing probable or definite left ventricular hypertrophy by Estes' criteria
+8. thalach: maximum heart rate achieved, непрерывный
+9. exang:  exercise induced angina (1 = yes; 0 = no), качественный
+10. oldpeak = ST depression induced by exercise relative to rest, углубление/опускание ST во время нагрузки, сравнительно с отдыхом
+11. slope: the slope of the peak exercise ST segment, наклон ST сегмента во время пиковой нагрузки, качественный
+-- Value 1: upsloping
+-- Value 2: flat
+-- Value 3: downsloping
+12. ca: number of major vessels (0-3) colored by flourosopy, дисретный
+13. thal (Thalium, a radioactive tracer injected during a stress test *): 3 = normal; 6 = fixed defect; 7 = reversable defect, качественный
+14. num: diagnosis of heart disease (angiographic disease status), качественный
+-- Value 0: < 50% diameter narrowing
+-- Value 1-4: > 50% diameter narrowing
+(in any major vessel: attributes 59 through 68 are vessels)
+
+
+
+Mental health: WHO modeled estimates, % of population affected
+
+Inequality: administrative data from OECD
+
+Spending: macroeconomic statistics
+
+# Part 3 - Quantifying
+
+## 3.1 Data cleaning 
+
+# Check missed data mental health dataset
+
+```{r}
+colSums(is.na(mental))
+```
+
+# Check missed data inequality dataset
+
+```{r}
+colSums(is.na(inequality))
+```
+## Generate necessary variables
+
+```{r}
+mental_not_death <- mental[mental$measure_name == "DALYs (Disability-Adjusted Life Years)",]
+mental_not_death <- subset(mental_not_death, location_name %in% c(
+  "Norway",
+  "Sweden",
+  "Netherlands",
+  "Germany",
+  "France",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "Australia",
+  "Japan",
+  "South Korea",
+  "Italy",
+  "Spain",
+  "Finland",
+  "Belgium")
+  )
+unique(mental$cause_name)
+
+#only depression and anxiety
+not_death_dep_anx <- mental_not_death[
+  mental_not_death$sex_id == 3 & 
+  mental_not_death$age_id == 22 &
+  (mental_not_death$cause_name == "Anxiety disorders" | 
+   mental_not_death$cause_name == "Depressive disorders"), 
+]
+
+mental_NL <- subset(not_death_dep_anx, location_name == "Netherlands")
+
+
+mental_not_death <- mental_not_death[mental_not_death$cause_name == "All causes" & mental_not_death$sex_id == 3 & mental_not_death$age_id == 22, ]
+head(mental_not_death)
+
+mental_Sweden <- subset(mental_not_death, location_name == "Sweden")
+mental_France <- subset(mental_not_death, location_name == "France")
+
+```
+## Working on inequality dataset
+
+
+## Data cleaning
+# filter data by country
+```{r}
+inequality <- subset(inequality, `Country Name` %in% c(
+  "Norway",
+  "Sweden",
+  "Netherlands",
+  "Germany",
+  "France",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "Australia",
+  "Japan",
+  "South Korea",
+  "Italy",
+  "Spain",
+  "Finland",
+  "Belgium")
+  )
+```
+# transform dataset in the way years are not the name of columns anymore:
+```{r}
+inequality_long <- inequality %>%
+  pivot_longer(
+    cols = matches("^\\d{4}$"),
+    names_to = "year",
+    values_to = "gini_index"
+  ) %>%
+  mutate(year = as.integer(year))
+```
+# Pick the latest available gini-index
+```{r}
+latest_gini <- inequality_long %>%
+  arrange(`Country Name`, desc(year)) %>%
+  group_by(`Country Name`) %>%
+  filter(!is.na(gini_index)) %>%
+  slice(1) %>%
+  ungroup()
+
+head(latest_gini)
+```
+# Create buckets
+```{r}
+gini_buckets <- latest_gini%>%
+  mutate(gini_bucket = case_when(
+    gini_index <25 ~ "Low",
+    gini_index >= 25 & gini_index <35 ~ "Middle",
+    gini_index >= 35 ~ "High",
+    TRUE ~ NA_character_
+  ))
+```
+
+## 3.3 Visualize
+
+```{r}
+#NL
+ggplot(mental_NL, aes(x = year, y = val, color = cause_name)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2) +
+  labs(title = "Depression and Anxiety Cases in NL",
+       x = "Year", y = "Number of Cases",
+       color = "Mental Health Condition") +
+  theme_minimal()
+
+# Sweden
+ggplot(mental_Sweden, aes(x = year, y = val)) +
+  geom_line(color = "darkgreen", size = 1.2) +
+  geom_point(color = "darkgreen", size = 3) +
+  labs(title = "Mental Health Cases in Sweden Over Time",
+       x = "Year", y = "Number of Cases") +
+  theme_minimal()
+
+#France
+ggplot(mental_France, aes(x = factor(year), y = val)) +
+  geom_col(fill = "skyblue", color = "darkblue", width = 0.7) +
+  labs(title = "Mental Disorder Cases per Year in France",
+       x = "Year", y = "Number of Cases") +
+  scale_y_continuous(labels = label_comma()) +  # 👈 this fixes the y-axis
+  theme_minimal(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```{r stacked_bar, fig.width=12, fig.height=6}
+ggplot(mental, aes(x = factor(year), y = val, fill = cause_name)) +
+  geom_col(position = "stack") +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    title = "Total Mental Health Cases in France by Disorder",
+    x = "Year", y = "Number of Cases", fill = "Disorder"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold")
+  )
+```
+## Number of Mental Health Cases by Year
+```{r}
+ggplot(mental_not_death, aes(x = year, y = val, color = location_name)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = scales::label_comma()) +
+  labs(title = "Number of Mental Health Cases by Year",
+       x = "Year", y = "Number of Cases", color = "Country") +
+  theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+
+## 3.6 Event analysis
+
+## Merging datasets
+```{r}
+merged_data <- merge(mental_not_death, gini_buckets, by.x = "location_name", by.y = "Country Name")
+
+# Shows the distribution (median, spread, outliers) of depression rates for each inequality group.
+
+# Basic boxplot
+ggplot(merged_data, aes(x = gini_bucket, y = val)) +
+  geom_boxplot(fill = "skyblue", alpha = 0.7) +
+  labs(title = "Depression Rate by Gini Bucket",
+       x = "Gini Coefficient Category",
+       y = "Depression Rate (%)") +
+  theme_minimal()
+
+
+merged_data %>%
+  filter(year.x %in% c(2010, 2015, 2020, 2023)) %>%  # Limit to a few years for clarity
+  ggplot(aes(x = gini_bucket, y = val)) +
+  geom_boxplot(fill = "lightgreen") +
+  facet_wrap(~year.x) +
+  labs(title = "Depression by Gini Bucket Over Time",
+       x = "Gini Level",
+       y = "Depression Rate") +
+  theme_minimal()
+#expenditure <- read_csv("health_spending.csv")
+
+```
+
+```{r}
+  
+# Step 1: Make sure WDI population data is ready
+library(WDI)
+library(dplyr)
+
+pop_data <- WDI(country = "all", indicator = "SP.POP.TOTL", start = 2010, end = 2020) %>%
+  rename(country = country, year = year, population = SP.POP.TOTL)
+
+# Step 2: Join using location_name and year.x
+merged_data <- merged_data %>%
+  left_join(pop_data, by = c("location_name" = "country", "year.x" = "year"))
+
+# Check population column
+summary(merged_data$population)
+
+# compute the rate:
+merged_data <- merged_data %>%
+  mutate(depression_rate = ifelse(!is.na(population), (val / population) * 100000, NA))
+
+```
+##  Spatial Analysis (Maps)
+# ggplot2 + rnaturalearth for maps.
+```{r}
+#install.packages("sf")
+#install.packages("rnaturalearth")
+#install.packages("rnaturalearthdata")
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+```
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+map_data <- merged_data %>% filter(year.x == 2015)
+
+ggplot() +
+  geom_sf(data = world, fill = "grey80", color = "white") +
+  geom_sf(data = left_join(world, map_data, by = c("name" = "location_name")),
+          aes(fill = depression_rate)) +
+  scale_fill_viridis_c(option = "plasma") +
+  theme_minimal() +
+  labs(title = "Depression Rates by Country", fill = "Rate (%)")
+``` 
+
+```{r}
+
+merged_data %>%
+  filter(year.x %in% c(2010, 2015, 2013)) %>%
+  ggplot(aes(x = gini_bucket, y = depression_rate)) +
+  geom_boxplot(fill = "lightgreen") +
+  facet_wrap(~year.x) +
+  labs(title = "Depression by Gini Bucket Over Time",
+       x = "Gini Level",
+       y = "Depression Rate") +
+  scale_y_continuous(labels = comma) +  # This disables scientific notation
+  theme_minimal()
+#expenditure <- read_csv("health_spending.csv")
+```
+```
+```
+Analyze the relationship between two variables.
+
+```{r analysis}
+
+```
+
+Here you provide a description of why the plot above is relevant to your specific social problem.
+
+# Part 4 - Discussion
+
+## 4.1 Discuss your findings
+
+# Part 5 - Reproducibility
+
+## 5.1 Github repository link
+
+https://github.com/qgelena/Quantifying_a_social_problem/tree/main
+
+## 5.2 Reference list
+
+Use APA referencing throughout your document.
