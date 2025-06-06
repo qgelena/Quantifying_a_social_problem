@@ -1,0 +1,190 @@
+---
+title: "Mental Health Inequality Across the Globe: How Economic and Social Disparities Shape Psychological Well-Being"
+author: "Alona Sychevska, 2769408"
+date: "June 5, 2025"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+always_allow_html: true
+---
+
+```{r warning=FALSE, message = F}
+library(psych)
+library(GGally)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(scales)
+library(WDI)
+library(stringr)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+library(readxl)
+library(naniar)
+library(plotly)
+library(reshape2) 
+library(RColorBrewer)
+library(e1071)
+```
+# Mental Health Inequality Across the Globe: How Economic and Social Disparities Shape Psychological Well-Being
+
+Alona Sychevska
+
+Tutorial lecturer's name: Chantal Schouwenaar, Jack Fitzgerald
+
+## 1 Problem Motivation & Literature
+
+### Why It’s a Recognized Social Problem
+
+Mental health issues such as depression and anxiety are on the rise globally—not only in high-income countries like the Netherlands or the UK, but also across low- and middle-income countries (LMICs). According to the WHO, mental disorders are among the leading causes of disability worldwide, and their burden is projected to grow (World Health Organization, 2023).
+
+A growing body of literature suggests that **economic inequality**, rather than just poverty or absolute income, is a key social determinant of mental health. Studies have found that countries with higher levels of income inequality tend to have higher rates of psychological distress, even after controlling for GDP per capita and other macroeconomic indicators (Wilkinson & Pickett, 2009).
+
+A systematic review of 26 studies—primarily from high-income countries—found that greater income inequality is associated with a 19% increased risk of depression (Patel et al., 2018). While most of this literature focuses on wealthy countries, studies in LMICs have also confirmed that poverty and inequality significantly predict common mental disorders (Lund et al., 2010).
+
+More recent cross-continental studies have demonstrated that income inequality not only exacerbates anxiety and depression in high-income countries, but also in emerging and developing economies, reinforcing the need for a more globally inclusive analysis (Patel et al., 2022).
+
+### Theoretical Framing & Mechanisms
+
+Several mechanisms help explain how economic inequality may drive mental health problems:
+
+* **Relative deprivation**: People evaluate their well-being not in absolute terms but in comparison to others. This social comparison can lead to chronic stress and lower self-worth, especially in unequal societies (Smith et al., 2012).
+
+* **Social capital erosion**: Inequality weakens social cohesion and trust, contributing to social exclusion and loneliness, which are known risk factors for mental illness (Kawachi & Berkman, 2000).
+
+* **Bidirectional poverty–mental health link**: Mental illness can both result from and reinforce poverty, creating a feedback loop that is particularly severe in LMICs (Lund et al., 2010).
+
+### Gap in the Literature
+
+Most cross-national studies on mental health and inequality focus on wealthy countries or single-region datasets. Far fewer include **LMICs**, despite the fact that these countries now bear a disproportionately large share of the global mental health burden.
+
+Moreover, few studies consider a **broad set of economic, environmental, and social variables together**, such as:
+
+* Inequality (Gini, wealth concentration)
+* Housing cost burden
+* Urbanization rate
+* Government spending
+* Air pollution (PM2.5)
+
+This project combines all of these, providing a richer understanding of **how multiple inequality-related factors relate to mental health outcomes** across different economic contexts. It uses cross-national data covering income groups from the World Bank and mental health data from the Global Burden of Disease project.
+
+---
+
+## 2 Data Sourcing & Description
+### Data Sources and Credibility
+This project integrates two key datasets: the Global Burden of Disease (GBD) Study 2021 and a multi-source dataset compiled from the World Bank (WDI), WHO, and other internationally reputable institutions.
+
+The GBD Study is produced by the Institute for Health Metrics and Evaluation (IHME) at the University of Washington. It is considered the gold standard for global health statistics and is widely cited by academic institutions and policymakers worldwide (IHME, 2022).
+
+The second dataset is a merged compilation drawing from sources like the World Bank’s World Development Indicators (WDI), WHO’s Air Quality Database, and World Population Review. These are recognized institutions known for robust methodologies and transparency. WDI, in particular, is frequently used in cross-country empirical studies due to its consistency and broad temporal coverage.
+
+### Metadata Overview
+
+----
+
+**Dataset 1: Global Burden of Disease Study (GBD 2021)**
+
+*Citation:* Global Burden of Disease Collaborative Network. GBD 2021 Results. Seattle, WA: IHME, 2022. Available from https://vizhub.healthdata.org/gbd-results/
+
+**Metadata:**
+
+*Variables:*
+
+* location (country)
+
+* cause (e.g. anxiety, depression)
+
+* measure_name (e.g. DALYs, Deaths, Prevalence)
+
+* val_mental (absolute burden), disorder_rate (percent)
+
+* year, population, iso3c
+
+*Structure:* Long-format panel data; each row = country-cause-year combo
+
+*Timeframe:* Includes historical time series from 2014.
+
+*Unit of observation:* Country-year-cause.
+
+-----
+
+### Dataset 2: World Bank & World Population Review–Compiled Dataset (Merged Socioeconomic Indicators)
+
+**Sources:**
+
+- World Bank. (n.d.). *World Development Indicators (WDI)* – GDP per capita, urbanization, population. [World Bank WDI](https://databank.worldbank.org/source/world-development-indicators)  
+- World Health Organization. (2022). *WHO Air Quality Database 2022*. [WHO Air Quality](https://www.who.int/data/gho/data/themes/air-pollution/who-air-quality-database/2022)  
+- World Bank. (n.d.). *Poverty and Inequality Platform: Gini index*. [Gini Index – PIP](http://pip.worldbank.org)  
+- World Bank. (n.d.). *Income share held by highest 10% (SI.DST.10TH.10)*. [Top 10% Income Share](https://data.worldbank.org/indicator/SI.DST.10TH.10?end=2023&start=2023&view=bar)  
+- Transparency International. (2020). *Corruption Perceptions Index (CPI) 2020*. [CPI 2020](https://www.transparency.org/en/cpi/2020)  
+- World Bank. (n.d.). *House price to income ratio (IMF Global Housing Watch)*. [House Price to Income – World Bank](https://data360.worldbank.org/en/dataset/IMF_GHW)  
+- OECD. (n.d.). *OECD house price statistics*. [OECD House Prices](https://data-explorer.oecd.org/vis?lc=en&tm=DF_HOUSE_PRICES)  
+- International Monetary Fund. (n.d.). *Government expenditure, percent of GDP*. [Government Expenditure – IMF](https://www.imf.org/external/datamapper/exp@FPP/USA/FRA/JPN/GBR/SWE/ESP/ITA/ZAF/IND)  
+- Qery. (n.d.). 
+- Unemployment in OECD countries. [OECD Unemployment – Qery](https://qery.no/unemployment-in-oecd-countries/)  
+
+---
+
+**Metadata:**
+
+- **Structure:** Cross-sectional dataset using the latest available year per country (from 2014).  
+- **Units:** Mixed units including percentages, index scores, and GDP in USD.  
+
+---
+
+**Variables:**
+
+- **Mental Health:**
+  - `Depression_Rates` – Estimated prevalence of depression (%)
+  - `AnxietyRate_percent` – Estimated prevalence of anxiety (%)
+
+- **Inequality:**
+  - `gini_index` – Gini coefficient of income inequality
+  - `wealth_share_10` – Share of income held by the top 10%
+
+- **Economic:**
+  - `gdp_per_capita` – GDP per capita (USD)
+  - `income_grp` – World Bank income group classification
+  - `employment_rate` – Percent of working-age population employed
+  - `gov_spending_to_GDP_percent` – Government spending as % of GDP
+
+- **Environmental:**
+  - `PM2.5` – Annual mean exposure to fine particulate matter (µg/m³)
+
+- **Social:**
+  - `urban_pct` – Urban population (% of total)
+  - `housing_cost_toincome` – Ratio of housing costs to income
+  - `mortgage_to_income` – Ratio of mortgage payments to income
+  - `corruption_index` – Transparency International’s CPI score
+
+
+### Complementarity of the Two Datasets
+GBD offers high-quality health burden metrics (DALYs, Deaths, Prevalence), crucial for understanding the impact of mental health disorders, while the merged dataset offers explanatory variables on inequality, economic performance, environmental exposure, and housing. These datasets are complementary in structure and purpose: the GBD gives outcome measures, while the merged dataset gives potential predictors. Their integration allows for robust modeling of social determinants of mental health at the national level.
+
+While I initially collected more than two datasets, the two final have complementary strengths and ability to support the causality-oriented focus of this project: exploring how inequality and structural factors relate to mental health burdens across countries.
+
+### Relevance to the Topic
+
+The project's focus is on the causal relationship between inequality and mental health in low-, middle-, and high-income countries. The selected datasets are ideal because:
+
+The GBD dataset provides mental health burden metrics (e.g., DALYs lost to depression or anxiety), which are essential for measuring the societal impact of mental disorders across countries.
+
+The merged dataset allows for correlational and regression analyses of how inequality indicators (e.g., Gini index, top 10% wealth share, housing burden) , wealth, economic performance, and environmental factors relate to mental health prevalence.
+
+Both datasets cover a wide range of countries, including those outside the high-income bracket, which aligns with the study's comparative angle.
+
+### Limitations of the Data
+Despite their strengths, both datasets have limitations:
+
+GBD data, though standardized, aggregate country-level estimates, potentially masking subnational disparities and cultural variation in diagnosis/reporting.
+
+The merged dataset suffers from missing data for certain indicators in low-income countries, which could bias regression results or reduce sample size.
+
+Differences in data collection years (some indicators are 2021, others 2022 or 2023) may introduce temporal misalignment.
+
+Mental health prevalence estimates from sources like World Population Review may lack the methodological rigor of epidemiological surveys.
+
+Self-reported or perception-based indicators (e.g., corruption, employment satisfaction) could carry subjective bias.
