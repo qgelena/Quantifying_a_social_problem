@@ -188,3 +188,60 @@ Differences in data collection years (some indicators are 2021, others 2022 or 2
 Mental health prevalence estimates from sources like World Population Review may lack the methodological rigor of epidemiological surveys.
 
 Self-reported or perception-based indicators (e.g., corruption, employment satisfaction) could carry subjective bias.
+----------
+
+## 5 Reproducibility
+
+### 5.1 Github repository link
+
+https://github.com/qgelena/Quantifying_a_social_problem/tree/main
+
+### 5.2 Reference list
+
+* Kawachi, I., & Berkman, L. F. (2000). Social cohesion, social capital, and health. *Social Epidemiology*, 174–190.
+
+* Lund, C., Breen, A., Flisher, A. J., Kakuma, R., Corrigall, J., Joska, J. A., ... & Patel, V. (2010). Poverty and common mental disorders in low and middle income countries: A systematic review. *Social Science & Medicine, 71*(3), 517–528. [https://doi.org/10.1016/j.socscimed.2010.04.027](https://doi.org/10.1016/j.socscimed.2010.04.027)
+
+* Patel, V., Burns, J. K., Dhingra, M., Tarver, L., Kohrt, B. A., & Lund, C. (2018). Income inequality and depression: A systematic review and meta-analysis of the association and a scoping review of mechanisms. *World Psychiatry, 17*(1), 76–89. [https://doi.org/10.1002/wps.20492](https://doi.org/10.1002/wps.20492)
+
+* Patel, V., Saxena, S., Lund, C., Thornicroft, G., Baingana, F., Bolton, P., ... & UnÜtzer, J. (2022). The Lancet Commission on global mental health and sustainable development. *The Lancet, 392*(10157), 1553–1598. [https://doi.org/10.1016/S0140-6736(18)31612-X](https://doi.org/10.1016/S0140-6736%2818%2931612-X)
+
+* Smith, K. E., Bambra, C., Hill, S. E., & Watt, R. G. (2012). Health inequalities and the social determinants of health: What works? *Journal of Public Health, 34*(4), 523–529. [https://doi.org/10.1093/pubmed/fds052](https://doi.org/10.1093/pubmed/fds052)
+
+* Wilkinson, R., & Pickett, K. (2009). *The Spirit Level: Why more equal societies almost always do better*. London: Allen Lane.
+
+* World Health Organization. (2023). *Mental health*. Retrieved from [https://www.who.int/health-topics/mental-health](https://www.who.int/health-topics/mental-health)
+
+-------------
+
+### 5.3 Databases:
+
+- Global Burden of Disease Collaborative Network. (2022). *Global Burden of Disease Study 2021 (GBD 2021) results*. Institute for Health Metrics and Evaluation (IHME). [GBD Results](https://vizhub.healthdata.org/gbd-results/)
+
+- Gapminder. (n.d.). *Population data documentation (GD003)*. [Gapminder Population](https://www.gapminder.org/data/documentation/gd003/)
+
+- World Bank. (n.d.). *World Development Indicators (WDI)*. Retrieved June 2025, from [World Bank WDI](https://databank.worldbank.org/source/world-development-indicators)
+
+- World Bank. (n.d.). *The world by income and region*. [World by Income and Region](https://datatopics.worldbank.org/world-development-indicators/the-world-by-income-and-region.html)
+
+- World Bank. (n.d.). *Poverty and Inequality Platform: Gini index*. [Gini Index – PIP](http://pip.worldbank.org)
+
+- Transparency International. (2020). *Corruption Perceptions Index (CPI) 2020*. [CPI 2020](https://www.transparency.org/en/cpi/2020)
+
+- World Bank. (n.d.). *House price to income ratio (IMF Global Housing Watch)*. [House Price to Income – World Bank](https://data360.worldbank.org/en/dataset/IMF_GHW)
+
+- OECD. (n.d.). *OECD house price statistics*. [OECD House Prices](https://data-explorer.oecd.org/vis?lc=en&tm=DF_HOUSE_PRICES)
+
+- International Monetary Fund. (n.d.). *Government expenditure, percent of GDP*. [Government Expenditure – IMF](https://www.imf.org/external/datamapper/exp@FPP/USA/FRA/JPN/GBR/SWE/ESP/ITA/ZAF/IND)
+
+- World Bank. (n.d.). *Income share held by highest 10% (SI.DST.10TH.10)*. [Top 10% Income Share](https://data.worldbank.org/indicator/SI.DST.10TH.10?end=2023&start=2023&view=bar)
+
+- OECD. (n.d.). *Gini index – disposable income*. [OECD Gini Index](https://data-explorer.oecd.org/vis?fs[0]=Topic%2C1%7CSociety%23SOC%23%7CInequality%23SOC_INE%23)
+
+- Qery. (n.d.). *Unemployment in OECD countries*. [OECD Unemployment – Qery](https://qery.no/unemployment-in-oecd-countries/)
+
+- World Health Organization. (2022). *WHO Air Quality Database 2022*. [WHO Air Quality](https://www.who.int/data/gho/data/themes/air-pollution/who-air-quality-database/2022)
+
+- World Population Review. (2023). *Depression rates by country*. [Depression by Country](https://worldpopulationreview.com/country-rankings/depression-rates-by-country)
+
+- World Population Review. (2023). *Anxiety rates by country*. [Anxiety by Country](https://worldpopulationreview.com/country-rankings/anxiety-rates-by-country)
