@@ -190,6 +190,98 @@ Mental health prevalence estimates from sources like World Population Review may
 Self-reported or perception-based indicators (e.g., corruption, employment satisfaction) could carry subjective bias.
 ----------
 
+### 2.1 Load in the data
+
+```{r loading data, warning=FALSE, message = F}
+mental <- read_csv("../data/mental_illnesses_prevalence.csv")
+
+GBD <- read_csv("../data/Global-Burden-of-Disease-Study/IHME-GBD_2021_DATA-3c361732-1.csv")
+gni_by_country_year <- read_excel("../data/gni_by_country_year.xlsx")
+economic_inequality_gini_index <- read_csv("../data/economic-inequality-gini-index/economic-inequality-gini-index.csv")
+corruption_index <- read_excel("../data/corruption_index.xlsx")
+housing_cost_over_income <- read_csv("../data/house_price_to_income.csv")
+gov_spending_toGDP <-read_excel("../data/gov_spending_toGDP.xlsx")
+population <- read_csv("../data/population.csv")
+
+air_polution <- read_csv("../data/air_polution_who.csv")
+uneml_rate <- read_csv("../data/unemployment_rate.csv")
+percent_wealth_10 <- read_csv("../data/10percent_wealth/Income share held by highest 10%.csv")
+
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# WDI data
+urban_data <- WDI(
+  country = "all",
+  indicator = "SP.URB.TOTL.IN.ZS",
+  start = 2014,
+  end = 2025
+) %>%
+  rename(urban_pct = SP.URB.TOTL.IN.ZS)
+
+# Pull GDP per capita data
+  gdp_data <- WDI(
+  country = "all",
+  indicator = "NY.GDP.PCAP.CD",  # GDP per capita (current US$)
+  start = 2014,
+  end = 2025
+)
+```
+
+### 2.2 Checking the structure 
+
+```{r mental data}
+# checking structure of mental dataset
+dim(mental)
+names(mental)
+head(mental)
+```
+
+```{r gini data}
+# checking structure of dataset gini
+dim(economic_inequality_gini_index)
+names(economic_inequality_gini_index)
+head(economic_inequality_gini_index)
+```
+
+```{r urban data drop cols}
+# dropping cols from urban data set
+head(urban_data)
+colSums(is.na(urban_data))
+```
+```{r corruption index data structure check}
+head(corruption_index)
+colnames(corruption_index)
+```
+```{r gdp data}
+head(gdp_data)
+colSums(is.na(gdp_data))
+```
+
+```{r GBD_data structure check}
+dim(GBD)
+head(GBD)
+```
+
+```{r housing cost over income data structure check}
+head(housing_cost_over_income)
+colnames(housing_cost_over_income)
+colSums(is.na(housing_cost_over_income))
+```
+
+```{r air_polution_data_strt_check}
+colSums(is.na(air_polution))
+head(air_polution)
+```
+
+```{r gni_data_structure_check}
+head(gni_by_country_year)
+```
+
+```{r wealth held by Top 10% data structure check}
+head(percent_wealth_10)
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
