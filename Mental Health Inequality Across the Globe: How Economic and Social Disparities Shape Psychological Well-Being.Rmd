@@ -282,6 +282,174 @@ head(gni_by_country_year)
 head(percent_wealth_10)
 ```
 
+### 2.3 Data cleaning
+
+```{r filter mental data by year}
+mental <- mental %>%
+  filter(Year >= 2014)
+```
+
+```{r creating gini cats}
+economic_inequality_gini_index <- economic_inequality_gini_index %>%
+  filter(Year >= 2014) %>%
+  rename("Gini_index" = "Gini coefficient (2017 prices) - Income or consumption consolidated") %>%
+  select(-Code, -`1039568-annotations`)
+
+# Creating gini buckets 
+gini_cats <- economic_inequality_gini_index %>%
+  mutate(gini_bucket = case_when(
+    Gini_index < 0.25             ~ "Low",
+    Gini_index >= 0.25 & Gini_index < 0.35 ~ "Moderate",
+    Gini_index >= 0.35            ~ "High",
+    TRUE                        ~ NA_character_
+  ))
+
+colSums(is.na(gini_cats))
+```
+
+```{r urban_data}
+# dropping cols from urban data set
+urban_data <- urban_data %>%
+  select(-iso2c) 
+```
+
+```{r corruption_index_data}
+# selecting cols needed 
+corruption_index <- corruption_index %>%
+  select(Country, `CPI score 2014`, `CPI score 2015`, `CPI score 2016`, `CPI score 2017`, `CPI score 2018`, `CPI score 2019`, `CPI score 2020`)
+
+corruption_index <- corruption_index %>%
+  pivot_longer(
+    cols = starts_with("CPI score"),
+    names_to = "Year",
+    values_to = "CPI_score"
+  ) %>%
+  mutate(
+    Year = gsub("CPI score ", "", Year),         # Remove text to keep only the year
+    Year = as.integer(Year)                      # Convert to integer if needed
+  )
+```
+
+```{r unemployment_data}
+uneml_rate <- uneml_rate %>%
+  pivot_longer(
+    cols = matches("^\\d{4}$"),
+    names_to = "year",
+    values_to = "unemployment_rate"
+  ) %>%
+  mutate(year = as.integer(year)) %>%
+  rename(Country = `Country Name`) %>%
+  select(Country, year, unemployment_rate) %>%
+  filter(year >=2014)
+```
+
+```{r government_spending}
+gov_spending_toGDP <- gov_spending_toGDP %>%
+  select(Country, starts_with("201")) %>%  # Select year columns, assuming they are named like "2014", "2015", etc.
+  mutate(across(where(is.character), ~na_if(., "no data")))
+
+gov_spending_toGDP <- gov_spending_toGDP %>%
+  pivot_longer(
+    cols = matches("^\\d{4}$"),
+    names_to = "year",
+    values_to = "gov_spending_toGDP"
+  ) %>%
+  mutate(year = as.integer(year)) %>%
+  filter(year >= 2014)
+```
+
+```{r gdp_data_filtering}
+# Select only the columns needed, no duplicates
+gdp_data <- gdp_data %>%
+  select(country, year, NY.GDP.PCAP.CD) %>%
+  rename(gdp_per_capita = NY.GDP.PCAP.CD) %>%
+  filter(year >= 2014)
+```
+
+```{r GBD_data_filtering}
+GBD <- GBD %>%
+  group_by(location_name, cause_name, measure_name, year) %>%
+  summarise(mean_val = mean(val, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(val_m = mean_val * 100
+  ) #%>%
+  #filter(location_name == "Ukraine", cause_name == "Depressive disorders")
+```
+
+```{r housing_cost_over_income_data}
+# renaming col names for housing cost over income data
+housing_cost_over_income <- housing_cost_over_income %>% 
+    select(`Reference area`, TIME_PERIOD, OBS_VALUE) %>% 
+    rename(year = TIME_PERIOD, housing_CosttoIncome = OBS_VALUE) %>%
+  filter(year >= 2014)
+```
+
+```{r air_polution_data}
+air_polution <- air_polution %>%
+  rename("PM2.5" = "PM2.5 (μg/m3)", "Country" = "WHO Country Name") %>%
+  filter(!is.na(`Measurement Year`), !is.na(PM2.5)) %>%  # Remove rows without a year
+  group_by(Country, `Measurement Year`) %>%              # Group by country and year
+  summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+  rename("year" = `Measurement Year`) %>%
+  select(Country, PM2.5, year) %>%
+  filter(year>=2014)
+```
+
+```{r gni data}
+gni_by_country_year <- gni_by_country_year %>%
+  pivot_longer(
+    cols = matches("^\\d{4}$"),
+    names_to = "year",
+    values_to = "income_group"
+  ) %>%
+  mutate(year = as.integer(year)) %>%
+  select(Country, year, income_group)
+
+
+unique(gni_by_country_year$income_group)
+
+gni_by_country_year <- gni_by_country_year %>%
+  mutate(income_group = ifelse(income_group == "..", NA, income_group)) %>%
+  filter(year >= 2014)
+```
+
+```{r population data}
+unique(population$Year)
+
+population <- population %>%
+  rename(name = Entity, pop_est = "Population (historical)", pop_year = Year) %>%
+  select(name, pop_est, pop_year) %>%
+  filter(pop_year >= 2014)
+```
+
+```{r wealth held by Top 10% data}
+#transform percent wealth held by Top 10% merge
+wealth10_long <- percent_wealth_10 %>%
+  pivot_longer(
+    cols = matches("^\\d{4}$"),  # Select only year columns
+    names_to = "year",
+    values_to = "wealth_share_10"
+  ) %>%
+  mutate(
+    year = as.integer(year)
+  ) %>%
+  filter(!is.na(wealth_share_10)) %>%
+  group_by(`Country Name`) %>%
+  rename(
+    country = `Country Name`
+  ) %>%
+  select(country, wealth_share_10, year) %>%
+  filter(year >= 2014)
+
+head(wealth10_long)
+```
+
+```{r GBD data rename cols}
+#renaming col names
+GBD <- GBD %>%
+  rename(location = location_name, cause = cause_name, year_m = year)
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
