@@ -450,6 +450,92 @@ GBD <- GBD %>%
   rename(location = location_name, cause = cause_name, year_m = year)
 ```
 
+
+### 2.4 Datasets merging
+
+```{r merging datasets}
+# Mental + gini_cats data
+merged_data <- mental %>%
+  inner_join(gini_cats, by = c("Entity" = "Entity", "Year" = "Year"))
+
+merged_data <- merged_data %>%
+  inner_join(population,
+            by = c("Entity" = "name", "Year" = "pop_year"))
+
+merged_data <- merged_data %>%
+  left_join(gdp_data, by = c("Entity" = "country", "Year" = "year"))
+
+# merge corruption index
+merged_data <- merged_data %>%
+  inner_join(corruption_index, by = c("Entity" = "Country", "Year" = "Year"))
+
+# merge unemployment rate merge
+merged_data <- merged_data %>%
+  inner_join(uneml_rate, by = c("Entity" = "Country", "Year" = "year"))
+
+merged_data <- merged_data %>%
+  left_join(urban_data, by = c("Entity" = "country", "Year" = "year"))
+
+# Merge wealth share data
+merged_data <- merged_data %>%
+  inner_join(wealth10_long, by = c("Entity" = "country", "Year" = "year"))
+
+# Merge gov_spending to GDP %
+merged_data <- merged_data %>%
+  inner_join(gov_spending_toGDP, by = c("Entity" = "Country", "Year" = "year"))
+
+# merge housing_cost_over_income
+merged_data <- merged_data %>%
+  left_join(housing_cost_over_income, by = c("Entity" = "Reference area", "Year" = "year"))
+
+#Merge airpolution
+merged_data <- merged_data %>%
+  left_join(air_polution, by = c("Entity" = "Country", "Year" = "year"))
+
+merged_data <- merged_data %>%
+  left_join(gni_by_country_year,by = c("Entity" = "Country", "Year" = "year"))
+
+GBD <- GBD %>%
+  inner_join(gni_by_country_year, by = c("location" = "Country", "year_m" = "year"))
+
+GBD <- GBD %>%
+  inner_join(gini_cats, by = c("location" = "Entity", "year_m" = "Year"))
+```
+
+```{r summaries}
+# Post-Merge Checks
+# checking urban population variable 
+summary(merged_data$urban_pct)
+
+summary(merged_data$corruption_score)
+summary(merged_data$wealth_share_10)
+```
+
+```{r merged data}
+### Dropping unnecessary cols
+head(merged_data)
+merged_data <- merged_data %>%
+  select(-iso3c)
+
+merged_data <- merged_data %>% 
+  rename(Depressive_disorders = `Depressive disorders`)
+
+colnames(merged_data)
+```
+
+```{r missiness plot}
+# Visualize missiness
+gg_miss_var(merged_data, show_pct = TRUE)
+
+gg_miss_var(GBD, show_pct =  T)
+```
+
+```{r datasets summaries}
+# short summaries of the final datasets
+head(merged_data)
+head(GBD)
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
