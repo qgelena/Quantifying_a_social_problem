@@ -536,6 +536,54 @@ head(merged_data)
 head(GBD)
 ```
 
+### 2.5 Describe the type of variables included
+
+```{r}
+describe_variables <- function(df) {
+  desc <- lapply(names(df), function(var) {
+    col <- df[[var]]
+    var_class <- class(col)
+    
+    example_vals <- if (is.numeric(col)) {
+      sprintf("mean = %.2f, sd = %.2f", mean(col, na.rm = TRUE), sd(col, na.rm = TRUE))
+    } else if (is.factor(col) || is.character(col)) {
+      vals <- unique(na.omit(col))
+      paste("levels:", paste(head(vals, 5), collapse = ", "), if (length(vals) > 5) "...", collapse = "")
+    } else if (is.logical(col)) {
+      "logical (TRUE/FALSE)"
+    } else {
+      paste("class:", var_class)
+    }
+
+    type_label <- if (is.numeric(col)) {
+      "continuous"
+    } else if (is.factor(col) || is.character(col)) {
+      "categorical"
+    } else if (is.logical(col)) {
+      "logical"
+    } else {
+      "other"
+    }
+
+    paste0("- ", var, ": ", type_label, " (", var_class, "), ", example_vals)
+  })
+
+  cat(paste(unlist(desc), collapse = "\n"))
+}
+```
+
+```{r desc merged data}
+describe_variables(merged_data)
+```
+
+```{r desc GBD data}
+describe_variables(GBD)
+```
+
+```{r writing merged data to file}
+write.csv(merged_data, "../data/merged_data.csv")
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
