@@ -584,6 +584,78 @@ describe_variables(GBD)
 write.csv(merged_data, "../data/merged_data.csv")
 ```
 
+## 3 Quantifying
+
+### 3.1 Final data cleaning 
+
+```{r checing_missing_vals_mental_data}
+unique(merged_data$Year)
+colSums(is.na(merged_data))
+
+merged_data[, c("gdp_per_capita", "income_group")]
+```
+
+#### Generate necessary variables
+
+```{r subsets}
+colSums(is.na(GBD))
+
+GBD_dep_anx <- GBD[
+  (GBD$cause %in% c("Anxiety disorders", "Depressive disorders")),
+  ]
+
+GBD_mental_disorders <- GBD[
+  (GBD$cause %in% c("Mental disorders")),
+  ]
+
+colSums(is.na(GBD))
+```
+
+### 3.2 Visualizations
+
+#### 3.2.1 Temporal Variations
+
+```{r stacked_bar, fig.width=12, fig.height=6}
+GBD <- GBD %>%
+  mutate(val_percent = val_m * 100)  # per 10,000
+
+GBD_death <- GBD %>%
+  filter(GBD$measure_name == "Deaths")
+
+ggplot(GBD_death %>% filter(!is.na(val_m)), 
+       aes(x = factor(year_m), y = val_percent, fill = cause)) +
+  geom_col() +
+  facet_wrap(~ cause, scales = "free_y", labeller = label_wrap_gen(25)) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +  
+  labs(
+    title = "Deaths Attributed to Mental Health Disorders Over Time",
+    x = "Year",
+    y = "Percent of Deaths per 10,000"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold", size = 16),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+```{r depressive-trend, fig.width = 5, fig.height = 3, dpi = 300}
+GBD_Prevalence_depr <- GBD %>%
+  filter(cause == "Depressive disorders", measure_name == "Prevalence", location %in% c("Ukraine", "Netherlands", "Germany", "Sweeden", "Greece"),!is.na(val_m)) %>%
+  group_by(location, year_m)
+
+
+ggplot(GBD_Prevalence_depr, aes(x = year_m, y = val_m, color = location)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_y_continuous(labels = scales::label_comma()) +
+  labs(title = "Percent of Depressive disorders by Year",
+       x = "Year", y = "Percent of Cases", color = "Country") +
+  theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
