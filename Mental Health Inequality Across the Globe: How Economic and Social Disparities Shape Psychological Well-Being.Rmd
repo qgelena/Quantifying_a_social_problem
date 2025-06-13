@@ -656,6 +656,41 @@ ggplot(GBD_Prevalence_depr, aes(x = year_m, y = val_m, color = location)) +
   theme(plot.title = element_text(face = "bold"))
 ```
 
+
+#### 3.2.2 Spatial Analysis (Maps)
+
+```{r ggplot2_rnaturalearth_for_maps, fig.width = 10, fig.height = 4, dpi = 300}
+map_data = merged_data
+
+ggplot() +
+  geom_sf(data = world, fill = "grey80", color = "white") +
+  geom_sf(data = left_join(world, map_data, by = c("name" = "Entity")),
+          aes(fill = Depressive_disorders)) +
+  scale_fill_viridis_c(option = "plasma") +
+  theme_minimal() +
+  labs(title = "Depression Rates by Country", fill = "Rate (%)")
+``` 
+
+
+```{r analysis-between-2-variables}
+# Analyze the relationship between two variables.
+# Trend in disorder over time by income group
+GBD %>%
+  filter(!is.na(income_group), measure_name == "Prevalence") %>%
+  group_by(year_m, income_group) %>%
+  summarise(mean_disorder = mean(val_m, na.rm = T)) %>%
+  ggplot(aes(x = year_m, y = mean_disorder, color = income_group)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Disorder Rate Over Time by Income Group",
+    x = "Year",
+    y = "Mean Disorder Rate",
+    color = "Income Group"
+  ) +
+  theme_minimal()
+
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
