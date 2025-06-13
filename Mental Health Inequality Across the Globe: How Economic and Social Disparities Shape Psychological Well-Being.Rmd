@@ -731,6 +731,79 @@ p <- ggplot(mental_summary, aes(x = factor(year_m), y = val_m, fill = cause,
 ggplotly(p, tooltip = "text")
 ```
 
+
+### 3.3 Event analysis
+
+```{r Anxiety-disorders-by-income-group}
+# Boxplot: Anxiety disorders by income group
+merged_data %>%
+  filter(!is.na(income_group)) %>%
+ggplot(aes(x = income_group, y = Anxiety_disorders)) +
+  geom_boxplot(fill = "skyblue") +
+  labs(
+    title = "Anxiety Disorder by Income Group",
+    x = "Income Group",
+    y = "Anxiety Rate"
+  ) +
+  theme_minimal()
+```
+
+```{r Depressive disorder Rate by Gini Bucket}
+# Shows the distribution (median, spread, outliers) of disorder rates for each gini group.
+
+# Basic boxplot
+merged_data %>%
+  filter(!is.na(gini_bucket)) %>%
+ggplot(aes(x = gini_bucket, y = Depressive_disorders)) +
+  geom_boxplot(fill = "skyblue", alpha = 0.7) +
+  labs(title = "Depressive disorder Rate by Gini Bucket",
+       x = "Gini Coefficient Category",
+       y = "Depressive disorders Rate (%)") +
+  theme_minimal()
+```
+
+```{r Disorder by Gini Bucket Over Time}
+GBD_dep_anx %>%
+  filter(year_m %in% c(2014, 2020, 2021), measure_name == "Prevalence") %>%  # Limit to a few years for clarity
+  ggplot(aes(x = gini_bucket, y = val_m)) +
+  geom_boxplot(fill = "lightgreen") +
+  facet_wrap(~year_m) +
+  labs(title = "Depression & Anxiety by Gini Bucket Over Time",
+       x = "Gini Level",
+       y = "Depression & Anxiety Percent") +
+  theme_minimal()
+```
+```{r skewness, vars picking}
+#Check skewness and distribution for each numeric variable
+
+colnames(merged_data)
+# Pick numeric variables from dataset
+vars_to_check <- c("gdp_per_capita", "Gini_index", "urban_pct", "pop_est", "housing_CosttoIncome",
+                   "wealth_share_10",
+                   "CPI_score", "PM2.5", "unemployment_rate", "gov_spending_toGDP", "Depressive_disorders", "Schizophrenia_disorders", "Anxiety_disorders",    "Bipolar_disorders", 
+                   "Eating_disorders"
+                   )
+```
+
+```{r check skewness}
+# Loop through and print skewness + plot histogram
+for (var in vars_to_check) {
+  cat("\n\n==========", var, "==========\n")
+  
+  # Skewness (higher than |1| = very skewed)
+  skew_val <- skewness(merged_data[[var]], na.rm = TRUE)
+  cat("Skewness:", round(skew_val, 2), "\n")
+  
+  # Histogram
+  print(
+    ggplot(merged_data, aes_string(x = var)) +
+      geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+      labs(title = paste("Histogram of", var), x = var, y = "Count") +
+      theme_minimal()
+  )
+}
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
