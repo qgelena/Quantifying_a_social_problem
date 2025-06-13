@@ -691,6 +691,46 @@ GBD %>%
 
 ```
 
+### 3.2.3 Variation & Subgroup Analysis
+
+```{r Sweden-subset}
+# Rename causes for cleaner legend
+mental_Sweden <- GBD_dep_anx %>%
+  filter(location == "Sweden") %>%
+  mutate(cause = recode(cause,
+                        "Depressive Disorders" = "Depression",
+                        "Anxiety Disorders" = "Anxiety"))
+
+
+# Aggregate by year and cause, averaging disorder_rate across sex and age groups
+mental_summary <- mental_Sweden %>%
+  filter(measure_name == "Prevalence") %>%
+  group_by(year_m, cause) 
+
+# Plot
+p <- ggplot(mental_summary, aes(x = factor(year_m), y = val_m, fill = cause,
+                               text = paste0("Year: ", year_m, "<br>",
+                                             "Cause: ", cause, "<br>",
+                                             "Avg Rate: ", comma(round(val_m, 2))))) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  scale_fill_manual(values = c( "Depressive disorders" = "#2E8B57", "Anxiety disorders" = "#6A5ACD")) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Disorder Rates in Sweden Over Time (Aggregated by Cause)",
+    x = "Year", y = "Disorder Rate", fill = "Cause"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )
+
+# Interactive plot with better tooltips
+ggplotly(p, tooltip = "text")
+```
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
