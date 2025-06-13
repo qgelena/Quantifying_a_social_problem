@@ -804,6 +804,117 @@ for (var in vars_to_check) {
 }
 ```
 
+
+```{r logged_data, fig.width=16, fig.height=12, dpi=300}
+merged_data_log <- merged_data %>%
+  mutate(
+    log_eating = log(Eating_disorders +1),
+    
+    log_gdp_per_capita = log(gdp_per_capita + 1),
+    log_wealth_share_10 = log(wealth_share_10 + 1),
+    log_unemployment_rate = log(unemployment_rate +1),
+    
+    log_population = log(pop_est + 1),
+    
+    log_PM2.5 = log(PM2.5 + 1)    
+    )
+```
+
+```{r correlation-matrix, warning=FALSE, message=FALSE, fig.width=16, fig.height=12, dpi=300}
+merged_data_log %>%
+  select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
+         Gini_index, Depressive_disorders, Anxiety_disorders, Schizophrenia_disorders, Bipolar_disorders, gov_spending_toGDP, housing_CosttoIncome) %>%
+  cor(use = "complete.obs") %>%
+  round(2)
+
+p <- merged_data_log %>%
+  select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
+         Gini_index, Depressive_disorders, Anxiety_disorders, Schizophrenia_disorders, Bipolar_disorders, gov_spending_toGDP, housing_CosttoIncome) %>%
+  ggpairs()
+
+# Save bigger image
+ggsave("correlation_plot.png", plot = p, width = 16, height = 12, dpi = 300)
+
+# Show the plot in the knitted HTML
+p
+```
+
+```{r histograms-log-transformed-data}
+logs <- c("log_eating", "log_gdp_per_capita", "log_wealth_share_10", "log_unemployment_rate", "log_population", "log_PM2.5")
+
+for (var in logs) {
+  cat("\n\n==========", var, "==========\n")
+  
+  # Skewness (higher than |1| = very skewed)
+  skew_val <- skewness(merged_data_log[[var]], na.rm = TRUE)
+  cat("Skewness:", round(skew_val, 2), "\n")
+  
+  # Histogram
+  print(
+    ggplot(merged_data_log, aes_string(x = var)) +
+      geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+      labs(
+          title = paste("Histogram of", gsub("_", " ", var)),
+          x = gsub("_", " ", var),
+          y = "Count"
+      ) +
+      theme_minimal())
+  }
+```
+
+```{r}
+# Calculate correlation matrix
+cor_matrix_log <- merged_data_log %>%
+  select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
+         Gini_index, Depressive_disorders, Anxiety_disorders, Schizophrenia_disorders, Bipolar_disorders, gov_spending_toGDP, housing_CosttoIncome) %>%
+  cor(use = "complete.obs") %>%
+  round(2)
+
+
+# Melt the correlation matrix
+cor_df_log <- melt(cor_matrix_log)
+
+# Plot as heatmap
+# Create heatmap
+heatmap <- ggplot(cor_df_log, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#B2182B", high = "#2166AC", mid = "white",
+    midpoint = 0, limit = c(-1, 1), space = "Lab",
+    name = "Correlation"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    panel.grid = element_blank()
+  ) +
+  coord_fixed() +
+  geom_text(aes(label = value), color = "black", size = 4) +
+  labs(
+    title = "Correlation Heatmap of Selected Variables",
+    x = NULL,
+    y = NULL
+  )
+
+
+# Display
+print(heatmap)
+
+#Save a high-resolution image
+ggsave("correlation_heatmap.png", plot = heatmap, width = 12, height = 10, dpi = 300)
+```
+
+## 4 Discussion
+Result: get a sharp, labeled heatmap with intuitive coloring:
+
+Red = strong negative correlation
+
+Blue = strong positive
+
+White = neutral
+
+### 4.1 Discuss your findings
+
 ## 5 Reproducibility
 
 ### 5.1 Github repository link
