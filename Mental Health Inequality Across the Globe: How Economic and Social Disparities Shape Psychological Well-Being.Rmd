@@ -3,9 +3,9 @@ title: "Mental Health Inequality Across the Globe: How Economic and Social Dispa
 author: "Alona Sychevska, 2769408"
 date: "June 5, 2025"
 output: 
+  html_document: default
   pdf_document:
     latex_engine: xelatex
-  html_document: default
 always_allow_html: true
 ---
 
@@ -28,6 +28,7 @@ library(plotly)
 library(reshape2) 
 library(RColorBrewer)
 library(e1071)
+library(ggrepel)
 ```
 # Mental Health Inequality Across the Globe: How Economic and Social Disparities Shape Psychological Well-Being
 
@@ -193,9 +194,11 @@ Self-reported or perception-based indicators (e.g., corruption, employment satis
 ### 2.1 Load in the data
 
 ```{r loading data, warning=FALSE, message = F}
-mental <- read_csv("../data/mental_illnesses_prevalence.csv")
+#mental <- read_csv("../data/mental_illnesses_prevalence.csv")
 
-GBD <- read_csv("../data/Global-Burden-of-Disease-Study/IHME-GBD_2021_DATA-3c361732-1.csv")
+GBD <- read_csv("../data/Global-Burden-of-Disease-Study.csv")
+#GBD <- read_csv("../data/Global-Burden-of-Disease-Study/IHME-GBD_2021_DATA-3c361732-1.csv")
+
 gni_by_country_year <- read_excel("../data/gni_by_country_year.xlsx")
 economic_inequality_gini_index <- read_csv("../data/economic-inequality-gini-index/economic-inequality-gini-index.csv")
 corruption_index <- read_excel("../data/corruption_index.xlsx")
@@ -214,7 +217,7 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 urban_data <- WDI(
   country = "all",
   indicator = "SP.URB.TOTL.IN.ZS",
-  start = 2014,
+  start = 2012,
   end = 2025
 ) %>%
   rename(urban_pct = SP.URB.TOTL.IN.ZS)
@@ -223,7 +226,7 @@ urban_data <- WDI(
   gdp_data <- WDI(
   country = "all",
   indicator = "NY.GDP.PCAP.CD",  # GDP per capita (current US$)
-  start = 2014,
+  start = 2012,
   end = 2025
 )
 ```
@@ -284,14 +287,9 @@ head(percent_wealth_10)
 
 ### 2.3 Data cleaning
 
-```{r filter mental data by year}
-mental <- mental %>%
-  filter(Year >= 2014)
-```
-
 ```{r creating gini cats}
 economic_inequality_gini_index <- economic_inequality_gini_index %>%
-  filter(Year >= 2014) %>%
+  filter(Year >= 2012) %>%
   rename("Gini_index" = "Gini coefficient (2017 prices) - Income or consumption consolidated") %>%
   select(-Code, -`1039568-annotations`)
 
@@ -315,8 +313,10 @@ urban_data <- urban_data %>%
 
 ```{r corruption_index_data}
 # selecting cols needed 
+
+colnames(corruption_index)
 corruption_index <- corruption_index %>%
-  select(Country, `CPI score 2014`, `CPI score 2015`, `CPI score 2016`, `CPI score 2017`, `CPI score 2018`, `CPI score 2019`, `CPI score 2020`)
+  select(Country, "CPI Score 2012", "CPI Score 2013",`CPI score 2014`, `CPI score 2015`, `CPI score 2016`, `CPI score 2017`, `CPI score 2018`, `CPI score 2019`, `CPI score 2020`)
 
 corruption_index <- corruption_index %>%
   pivot_longer(
@@ -340,7 +340,7 @@ uneml_rate <- uneml_rate %>%
   mutate(year = as.integer(year)) %>%
   rename(Country = `Country Name`) %>%
   select(Country, year, unemployment_rate) %>%
-  filter(year >=2014)
+  filter(year >=2012)
 ```
 
 ```{r government_spending}
@@ -355,7 +355,7 @@ gov_spending_toGDP <- gov_spending_toGDP %>%
     values_to = "gov_spending_toGDP"
   ) %>%
   mutate(year = as.integer(year)) %>%
-  filter(year >= 2014)
+  filter(year >= 2012)
 ```
 
 ```{r gdp_data_filtering}
@@ -363,25 +363,16 @@ gov_spending_toGDP <- gov_spending_toGDP %>%
 gdp_data <- gdp_data %>%
   select(country, year, NY.GDP.PCAP.CD) %>%
   rename(gdp_per_capita = NY.GDP.PCAP.CD) %>%
-  filter(year >= 2014)
+  filter(year >= 2012)
 ```
 
-```{r GBD_data_filtering}
-GBD <- GBD %>%
-  group_by(location_name, cause_name, measure_name, year) %>%
-  summarise(mean_val = mean(val, na.rm = TRUE)) %>%
-  ungroup() %>%
-  mutate(val_m = mean_val * 100
-  ) #%>%
-  #filter(location_name == "Ukraine", cause_name == "Depressive disorders")
-```
 
 ```{r housing_cost_over_income_data}
 # renaming col names for housing cost over income data
 housing_cost_over_income <- housing_cost_over_income %>% 
     select(`Reference area`, TIME_PERIOD, OBS_VALUE) %>% 
     rename(year = TIME_PERIOD, housing_CosttoIncome = OBS_VALUE) %>%
-  filter(year >= 2014)
+  filter(year >= 2012)
 ```
 
 ```{r air_polution_data}
@@ -392,11 +383,12 @@ air_polution <- air_polution %>%
   summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
   rename("year" = `Measurement Year`) %>%
   select(Country, PM2.5, year) %>%
-  filter(year>=2014)
+  filter(year>=2012)
 ```
 
 ```{r gni data}
 gni_by_country_year <- gni_by_country_year %>%
+  rename("2016" = "...31", "2017" = "...32", "2018" = "...33", "2019" = "...34") %>%
   pivot_longer(
     cols = matches("^\\d{4}$"),
     names_to = "year",
@@ -410,7 +402,7 @@ unique(gni_by_country_year$income_group)
 
 gni_by_country_year <- gni_by_country_year %>%
   mutate(income_group = ifelse(income_group == "..", NA, income_group)) %>%
-  filter(year >= 2014)
+  filter(year >= 2012)
 ```
 
 ```{r population data}
@@ -419,8 +411,9 @@ unique(population$Year)
 population <- population %>%
   rename(name = Entity, pop_est = "Population (historical)", pop_year = Year) %>%
   select(name, pop_est, pop_year) %>%
-  filter(pop_year >= 2014)
+  filter(pop_year >= 2012)
 ```
+
 
 ```{r wealth held by Top 10% data}
 #transform percent wealth held by Top 10% merge
@@ -439,7 +432,7 @@ wealth10_long <- percent_wealth_10 %>%
     country = `Country Name`
   ) %>%
   select(country, wealth_share_10, year) %>%
-  filter(year >= 2014)
+  filter(year >= 2012)
 
 head(wealth10_long)
 ```
@@ -447,42 +440,61 @@ head(wealth10_long)
 ```{r GBD data rename cols}
 #renaming col names
 GBD <- GBD %>%
-  rename(location = location_name, cause = cause_name, year_m = year)
+  rename(Entity = location_name, cause = cause_name, Year = year)
 ```
 
+```{r GBD_data_filtering&creating_new_vars}
+GBD <- GBD %>%
+  inner_join(population,
+            by = c("Entity" = "name", "Year" = "pop_year"))
+
+# Calculate rate per 100,000 and percent
+GBD <- GBD %>%
+  filter(metric_name == "Number", measure_name == "Prevalence") %>%
+  mutate(
+    val_m = round((val / pop_est) * 100000, 2),
+    val_rate = format(val_m, big.mark = ",", scientific = FALSE),
+    val_percent = (val / pop_est) * 100
+  ) %>%
+  select(Entity, cause, Year, val_rate, val_percent, pop_est) %>%
+  #pivot_wider(names_from = cause,
+  #             values_from = val_rate) %>%
+  filter(Year >= 2012)
+```
 
 ### 2.4 Datasets merging
 
 ```{r merging datasets}
 # Mental + gini_cats data
-merged_data <- mental %>%
+merged_data <- GBD %>%
   inner_join(gini_cats, by = c("Entity" = "Entity", "Year" = "Year"))
 
 merged_data <- merged_data %>%
-  inner_join(population,
-            by = c("Entity" = "name", "Year" = "pop_year"))
+  inner_join(gni_by_country_year,by = c("Entity" = "Country", "Year" = "year"))
 
 merged_data <- merged_data %>%
-  left_join(gdp_data, by = c("Entity" = "country", "Year" = "year"))
-
-# merge corruption index
-merged_data <- merged_data %>%
-  inner_join(corruption_index, by = c("Entity" = "Country", "Year" = "Year"))
+  inner_join(gdp_data, by = c("Entity" = "country", "Year" = "year"))
 
 # merge unemployment rate merge
 merged_data <- merged_data %>%
   inner_join(uneml_rate, by = c("Entity" = "Country", "Year" = "year"))
 
-merged_data <- merged_data %>%
-  left_join(urban_data, by = c("Entity" = "country", "Year" = "year"))
-
 # Merge wealth share data
 merged_data <- merged_data %>%
   inner_join(wealth10_long, by = c("Entity" = "country", "Year" = "year"))
 
+merged_data <- merged_data %>%
+  inner_join(urban_data, by = c("Entity" = "country", "Year" = "year"))
+
+###
+
+# merge corruption index
+merged_data <- merged_data %>%
+  left_join(corruption_index, by = c("Entity" = "Country", "Year" = "Year"))
+
 # Merge gov_spending to GDP %
 merged_data <- merged_data %>%
-  inner_join(gov_spending_toGDP, by = c("Entity" = "Country", "Year" = "year"))
+  left_join(gov_spending_toGDP, by = c("Entity" = "Country", "Year" = "year"))
 
 # merge housing_cost_over_income
 merged_data <- merged_data %>%
@@ -491,49 +503,31 @@ merged_data <- merged_data %>%
 #Merge airpolution
 merged_data <- merged_data %>%
   left_join(air_polution, by = c("Entity" = "Country", "Year" = "year"))
-
-merged_data <- merged_data %>%
-  left_join(gni_by_country_year,by = c("Entity" = "Country", "Year" = "year"))
-
-GBD <- GBD %>%
-  inner_join(gni_by_country_year, by = c("location" = "Country", "year_m" = "year"))
-
-GBD <- GBD %>%
-  inner_join(gini_cats, by = c("location" = "Entity", "year_m" = "Year"))
 ```
 
 ```{r summaries}
 # Post-Merge Checks
-# checking urban population variable 
 summary(merged_data$urban_pct)
-
 summary(merged_data$corruption_score)
 summary(merged_data$wealth_share_10)
 ```
 
-```{r merged data}
+
+```{r merged_data}
 ### Dropping unnecessary cols
 head(merged_data)
 merged_data <- merged_data %>%
   select(-iso3c)
-
-merged_data <- merged_data %>% 
-  rename(Depressive_disorders = `Depressive disorders`)
-
-colnames(merged_data)
 ```
 
-```{r missiness plot}
+```{r missiness_plot}
 # Visualize missiness
 gg_miss_var(merged_data, show_pct = TRUE)
-
-gg_miss_var(GBD, show_pct =  T)
 ```
 
 ```{r datasets summaries}
-# short summaries of the final datasets
+# short summaries of the final dataset
 head(merged_data)
-head(GBD)
 ```
 
 ### 2.5 Describe the type of variables included
@@ -576,10 +570,6 @@ describe_variables <- function(df) {
 describe_variables(merged_data)
 ```
 
-```{r desc GBD data}
-describe_variables(GBD)
-```
-
 ```{r writing merged data to file}
 write.csv(merged_data, "../data/merged_data.csv")
 ```
@@ -591,46 +581,71 @@ write.csv(merged_data, "../data/merged_data.csv")
 ```{r checing_missing_vals_mental_data}
 unique(merged_data$Year)
 colSums(is.na(merged_data))
-
-merged_data[, c("gdp_per_capita", "income_group")]
 ```
 
 #### Generate necessary variables
 
 ```{r subsets}
-colSums(is.na(GBD))
-
-GBD_dep_anx <- GBD[
-  (GBD$cause %in% c("Anxiety disorders", "Depressive disorders")),
+dep_anx <- merged_data[
+  (merged_data$cause %in% c("Anxiety disorders", "Depressive disorders")),
   ]
 
-GBD_mental_disorders <- GBD[
-  (GBD$cause %in% c("Mental disorders")),
+mental_disorders <- merged_data[
+  (merged_data$cause %in% c("Mental disorders")),
   ]
-
-colSums(is.na(GBD))
 ```
 
 ### 3.2 Visualizations
 
 #### 3.2.1 Temporal Variations
 
+```{r fig.width=18, fig.height=12}
+
+filtered_2019 <- merged_data %>%
+  filter(Year == 2019 & cause == "Depressive disorders")
+
+ggplot(filtered_2019, aes(x = Gini_index, y = val_percent, 
+                          color = Entity, size = gdp_per_capita)) +
+  geom_point(alpha = 0.8) +
+  geom_text_repel(aes(label = Entity), size = 3, max.overlaps = 40) +
+  scale_size_continuous(range = c(5, 15)) +
+  labs(
+    title = "Depression Rates vs. Income Inequality (Gini) in 2019",
+    x = "Gini Index (Income Inequality)",
+    y = "Depression Rate (%)",
+    color = "Country",
+    size = "GDP per Capita"
+  ) +
+  theme_minimal()
+
+```
+
+
 ```{r stacked_bar, fig.width=12, fig.height=6}
-GBD <- GBD %>%
-  mutate(val_percent = val_m * 100)  # per 10,000
 
-GBD_death <- GBD %>%
-  filter(GBD$measure_name == "Deaths")
+tendencies <- merged_data %>%
+  filter(cause %in% c("Anxiety disorders", "Bipolar disorder", 
+                      "Attention-deficit/hyperactivity disorder", 
+                      "Eating disorders", "Depressive disorders")) %>%
+  mutate(cause = factor(cause, levels = c("Depressive disorders",
+                                         "Anxiety disorders",
+                                         "Bipolar disorder",
+                                         "Eating disorders",
+                                         "Attention-deficit/hyperactivity disorder"))) %>%
+  group_by(cause, Year) %>%
+  summarise(avg_val_percent = mean(val_percent, na.rm = TRUE)) %>%
+  select(cause, Year, avg_val_percent)
 
-ggplot(GBD_death %>% filter(!is.na(val_m)), 
-       aes(x = factor(year_m), y = val_percent, fill = cause)) +
+
+ggplot(tendencies, 
+       aes(x = factor(Year), y = avg_val_percent, fill = cause)) +
   geom_col() +
   facet_wrap(~ cause, scales = "free_y", labeller = label_wrap_gen(25)) +
   scale_y_continuous(labels = scales::percent_format(scale = 1)) +  
   labs(
-    title = "Deaths Attributed to Mental Health Disorders Over Time",
+    title = "Mental Health Average Percent by Disorders Over Time",
     x = "Year",
-    y = "Percent of Deaths per 10,000"
+    y = "Percent"
   ) +
   theme_minimal(base_size = 14) +
   theme(
@@ -641,17 +656,17 @@ ggplot(GBD_death %>% filter(!is.na(val_m)),
 ```
 
 ```{r depressive-trend, fig.width = 5, fig.height = 3, dpi = 300}
-GBD_Prevalence_depr <- GBD %>%
-  filter(cause == "Depressive disorders", measure_name == "Prevalence", location %in% c("Ukraine", "Netherlands", "Germany", "Sweeden", "Greece"),!is.na(val_m)) %>%
-  group_by(location, year_m)
+prevalence_depr <- dep_anx %>%
+  filter(cause == "Depressive disorders", Entity %in% c("Netherlands", "Germany", "Sweeden", "Greece")) %>%
+  group_by(Entity, Year)
 
 
-ggplot(GBD_Prevalence_depr, aes(x = year_m, y = val_m, color = location)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
+ggplot(prevalence_depr, aes(x = Year, y = val_percent, color = Entity)) +
+  geom_line(size = 0.5) +
+  geom_point(size = 1) +
   scale_y_continuous(labels = scales::label_comma()) +
   labs(title = "Percent of Depressive disorders by Year",
-       x = "Year", y = "Percent of Cases", color = "Country") +
+       x = "Year", y = "Percent of Cases", color = "Entity") +
   theme_minimal(base_size = 14) +
   theme(plot.title = element_text(face = "bold"))
 ```
@@ -660,13 +675,19 @@ ggplot(GBD_Prevalence_depr, aes(x = year_m, y = val_m, color = location)) +
 #### 3.2.2 Spatial Analysis (Maps)
 
 ```{r ggplot2_rnaturalearth_for_maps, fig.width = 10, fig.height = 4, dpi = 300}
-map_data = merged_data
+
+# Filter to depressive disorders only, select relevant columns for joining
+dep_map_data <- merged_data %>%
+  filter(cause == "Depressive disorders") %>%
+  select(Entity, val_percent)
+
+# Join with world data (assuming 'name' matches 'Entity')
+world_dep <- left_join(world, dep_map_data, by = c("name" = "Entity"))
 
 ggplot() +
   geom_sf(data = world, fill = "grey80", color = "white") +
-  geom_sf(data = left_join(world, map_data, by = c("name" = "Entity")),
-          aes(fill = Depressive_disorders)) +
-  scale_fill_viridis_c(option = "plasma") +
+  geom_sf(data = world_dep, aes(fill = val_percent)) +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
   theme_minimal() +
   labs(title = "Depression Rates by Country", fill = "Rate (%)")
 ``` 
@@ -675,28 +696,45 @@ ggplot() +
 ```{r analysis-between-2-variables}
 # Analyze the relationship between two variables.
 # Trend in disorder over time by income group
-GBD %>%
-  filter(!is.na(income_group), measure_name == "Prevalence") %>%
-  group_by(year_m, income_group) %>%
-  summarise(mean_disorder = mean(val_m, na.rm = T)) %>%
-  ggplot(aes(x = year_m, y = mean_disorder, color = income_group)) +
+merged_data %>%
+  filter(!is.na(income_group)) %>%
+  group_by(Year, income_group) %>%
+  summarise(mean_disorder = mean(val_percent, na.rm = T)) %>%
+  ggplot(aes(x = Year, y = mean_disorder, color = income_group)) +
   geom_line(size = 1.2) +
   labs(
     title = "Disorder Rate Over Time by Income Group",
     x = "Year",
-    y = "Mean Disorder Rate",
+    y = "Mean Disorder Percent",
     color = "Income Group"
   ) +
   theme_minimal()
 
 ```
+```{r}
+merged_data %>%
+  filter(Entity == "Ukraine",
+         cause == "Depressive disorders") %>%
+  ggplot(aes(x = Year, y = val_percent)) +
+  geom_line(color = "#0072B2", size = 1.2) +
+  geom_vline(xintercept = 2014, linetype = "dashed", color = "red") +
+  labs(
+    title = "Depressive Disorder Rates in Ukraine Before and After Conflict (2014)",
+    x = "Year",
+    y = "Rate (%)"
+  ) +
+  theme_minimal()
+
+``
+```
+
 
 ### 3.2.3 Variation & Subgroup Analysis
 
 ```{r Sweden-subset}
 # Rename causes for cleaner legend
-mental_Sweden <- GBD_dep_anx %>%
-  filter(location == "Sweden") %>%
+mental_Sweden <- dep_anx %>%
+  filter(Entity == "Sweden") %>%
   mutate(cause = recode(cause,
                         "Depressive Disorders" = "Depression",
                         "Anxiety Disorders" = "Anxiety"))
@@ -704,17 +742,17 @@ mental_Sweden <- GBD_dep_anx %>%
 
 # Aggregate by year and cause, averaging disorder_rate across sex and age groups
 mental_summary <- mental_Sweden %>%
-  filter(measure_name == "Prevalence") %>%
-  group_by(year_m, cause) 
+  group_by(Year, cause) 
 
 # Plot
-p <- ggplot(mental_summary, aes(x = factor(year_m), y = val_m, fill = cause,
-                               text = paste0("Year: ", year_m, "<br>",
-                                             "Cause: ", cause, "<br>",
-                                             "Avg Rate: ", comma(round(val_m, 2))))) +
+p <- ggplot(mental_summary, aes(x = factor(Year), y = val_rate, fill = cause,
+                               text = paste0("Year: ", Year, "<br>",
+                                             "Cause: ", cause, "<br>"
+                                             #,"Avg Rate: ", comma(round(val_rate, 2)
+                                             ))) +
   geom_col(position = position_dodge(width = 0.7), width = 0.6) +
   scale_fill_manual(values = c( "Depressive disorders" = "#2E8B57", "Anxiety disorders" = "#6A5ACD")) +
-  scale_y_continuous(labels = comma) +
+  #scale_y_continuous(labels = comma) +
   labs(
     title = "Disorder Rates in Sweden Over Time (Aggregated by Cause)",
     x = "Year", y = "Disorder Rate", fill = "Cause"
@@ -736,52 +774,57 @@ ggplotly(p, tooltip = "text")
 
 ```{r Anxiety-disorders-by-income-group}
 # Boxplot: Anxiety disorders by income group
-merged_data %>%
+anxiety <- dep_anx %>%
+  filter(cause == "Anxiety disorders")
+
+anxiety %>%
   filter(!is.na(income_group)) %>%
-ggplot(aes(x = income_group, y = Anxiety_disorders)) +
+ggplot(aes(x = income_group, y = val_percent)) +
   geom_boxplot(fill = "skyblue") +
   labs(
     title = "Anxiety Disorder by Income Group",
     x = "Income Group",
-    y = "Anxiety Rate"
+    y = "Anxiety Percent"
   ) +
   theme_minimal()
 ```
 
-```{r Depressive disorder Rate by Gini Bucket}
+```{r Depressive_disorder_Rate_by_Gini_Bucket}
 # Shows the distribution (median, spread, outliers) of disorder rates for each gini group.
+depr <- dep_anx %>%
+  filter(cause == "Depressive disorders") %>%
+  mutate(logged_depr = log(val_percent + 1))
 
 # Basic boxplot
-merged_data %>%
+depr %>%
   filter(!is.na(gini_bucket)) %>%
-ggplot(aes(x = gini_bucket, y = Depressive_disorders)) +
+ggplot(aes(x = gini_bucket, y = val_percent)) +
   geom_boxplot(fill = "skyblue", alpha = 0.7) +
-  labs(title = "Depressive disorder Rate by Gini Bucket",
+  labs(title = "Depressive disorder Percent by Gini Bucket",
        x = "Gini Coefficient Category",
-       y = "Depressive disorders Rate (%)") +
+       y = "Depressive disorders Percent (%)") +
   theme_minimal()
 ```
 
 ```{r Disorder by Gini Bucket Over Time}
-GBD_dep_anx %>%
-  filter(year_m %in% c(2014, 2020, 2021), measure_name == "Prevalence") %>%  # Limit to a few years for clarity
-  ggplot(aes(x = gini_bucket, y = val_m)) +
+dep_anx %>%
+  filter(Year %in% c(2018, 2019, 2020)) %>%  # Limit to a few years for clarity
+  ggplot(aes(x = gini_bucket, y = val_percent)) +
   geom_boxplot(fill = "lightgreen") +
-  facet_wrap(~year_m) +
+  facet_wrap(~Year) +
   labs(title = "Depression & Anxiety by Gini Bucket Over Time",
        x = "Gini Level",
        y = "Depression & Anxiety Percent") +
   theme_minimal()
 ```
-```{r skewness, vars picking}
-#Check skewness and distribution for each numeric variable
 
+
+```{r skewness_and_distribution_for_each_numeric_variable}
 colnames(merged_data)
 # Pick numeric variables from dataset
 vars_to_check <- c("gdp_per_capita", "Gini_index", "urban_pct", "pop_est", "housing_CosttoIncome",
                    "wealth_share_10",
-                   "CPI_score", "PM2.5", "unemployment_rate", "gov_spending_toGDP", "Depressive_disorders", "Schizophrenia_disorders", "Anxiety_disorders",    "Bipolar_disorders", 
-                   "Eating_disorders"
+                   "CPI_score", "PM2.5", "unemployment_rate", "gov_spending_toGDP"
                    )
 ```
 
@@ -806,30 +849,41 @@ for (var in vars_to_check) {
 
 
 ```{r logged_data, fig.width=16, fig.height=12, dpi=300}
-merged_data_log <- merged_data %>%
+
+disorders_wide <- merged_data %>%
+  filter(cause %in% c("Depressive disorders", "Anxiety disorders", "Schizophrenia", "Bipolar disorder", "Eating disorders")) %>%
+  select(Entity, Year, cause, val_percent, gdp_per_capita, wealth_share_10, unemployment_rate, pop_est, PM2.5, Gini_index, gov_spending_toGDP, housing_CosttoIncome) %>%
+  pivot_wider(names_from = cause, values_from = val_percent)
+
+
+merged_data_log <- disorders_wide %>%
   mutate(
-    log_eating = log(Eating_disorders +1),
+    log_eating = log(`Eating disorders` + 1),
     
     log_gdp_per_capita = log(gdp_per_capita + 1),
     log_wealth_share_10 = log(wealth_share_10 + 1),
-    log_unemployment_rate = log(unemployment_rate +1),
-    
+    log_unemployment_rate = log(unemployment_rate + 1),
     log_population = log(pop_est + 1),
-    
     log_PM2.5 = log(PM2.5 + 1)    
-    )
+  )
 ```
 
 ```{r correlation-matrix, warning=FALSE, message=FALSE, fig.width=16, fig.height=12, dpi=300}
+
 merged_data_log %>%
   select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
-         Gini_index, Depressive_disorders, Anxiety_disorders, Schizophrenia_disorders, Bipolar_disorders, gov_spending_toGDP, housing_CosttoIncome) %>%
+         Gini_index, 
+         `Depressive disorders`, `Anxiety disorders`, Schizophrenia, `Bipolar disorder`, 
+         gov_spending_toGDP, housing_CosttoIncome) %>%
   cor(use = "complete.obs") %>%
   round(2)
 
 p <- merged_data_log %>%
-  select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
-         Gini_index, Depressive_disorders, Anxiety_disorders, Schizophrenia_disorders, Bipolar_disorders, gov_spending_toGDP, housing_CosttoIncome) %>%
+  select(log_eating, 
+    log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
+         Gini_index, 
+    `Depressive disorders`, `Anxiety disorders`, Schizophrenia, `Bipolar disorder`,
+    gov_spending_toGDP, housing_CosttoIncome) %>%
   ggpairs()
 
 # Save bigger image
@@ -840,7 +894,8 @@ p
 ```
 
 ```{r histograms-log-transformed-data}
-logs <- c("log_eating", "log_gdp_per_capita", "log_wealth_share_10", "log_unemployment_rate", "log_population", "log_PM2.5")
+logs <- c("log_eating", 
+  "log_gdp_per_capita", "log_wealth_share_10", "log_unemployment_rate", "log_population", "log_PM2.5")
 
 for (var in logs) {
   cat("\n\n==========", var, "==========\n")
@@ -866,7 +921,9 @@ for (var in logs) {
 # Calculate correlation matrix
 cor_matrix_log <- merged_data_log %>%
   select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
-         Gini_index, Depressive_disorders, Anxiety_disorders, Schizophrenia_disorders, Bipolar_disorders, gov_spending_toGDP, housing_CosttoIncome) %>%
+         Gini_index, 
+         `Depressive disorders`, `Anxiety disorders`, Schizophrenia, `Bipolar disorder`, 
+         gov_spending_toGDP, housing_CosttoIncome) %>%
   cor(use = "complete.obs") %>%
   round(2)
 
