@@ -3,9 +3,9 @@ title: "Mental Health Inequality Across the Globe: How Economic and Social Dispa
 author: "Alona Sychevska, 2769408"
 date: "June 5, 2025"
 output: 
-  html_document: default
   pdf_document:
     latex_engine: xelatex
+  html_document: default
 always_allow_html: true
 ---
 
@@ -76,11 +76,11 @@ This project combines all of these, providing a richer understanding of **how mu
 
 ## 2 Data Sourcing & Description
 ### Data Sources and Credibility
-This project integrates two key datasets: the Global Burden of Disease (GBD) Study 2021 and a multi-source dataset compiled from the World Bank (WDI), WHO, and other internationally reputable institutions.
+This project integrates two key datasets: the Global Burden of Disease (GBD) Study 2021 and a multi-source datasets compiled from the World Bank (WDI), WHO, and other internationally reputable institutions.
 
 The GBD Study is produced by the Institute for Health Metrics and Evaluation (IHME) at the University of Washington. It is considered the gold standard for global health statistics and is widely cited by academic institutions and policymakers worldwide (IHME, 2022).
 
-The second dataset is a merged compilation drawing from sources like the World Bank’s World Development Indicators (WDI), WHO’s Air Quality Database, and World Population Review. These are recognized institutions known for robust methodologies and transparency. WDI, in particular, is frequently used in cross-country empirical studies due to its consistency and broad temporal coverage.
+The merged compilation of datasets drawing from sources like the World Bank’s World Development Indicators (WDI), WHO’s Air Quality Database, and World Population Review. These are recognized institutions known for robust methodologies and transparency. WDI, in particular, is frequently used in cross-country empirical studies due to its consistency and broad temporal coverage.
 
 ### Metadata Overview
 
@@ -106,13 +106,13 @@ The second dataset is a merged compilation drawing from sources like the World B
 
 *Structure:* Long-format panel data; each row = country-cause-year combo
 
-*Timeframe:* Includes historical time series from 2014.
+*Timeframe:* Includes historical time series from 2012.
 
 *Unit of observation:* Country-year-cause.
 
 -----
 
-### Dataset 2: World Bank & World Population Review–Compiled Dataset (Merged Socioeconomic Indicators)
+### Multi-source datasets: World Bank & World Population Review–Compiled Dataset (Merged Socioeconomic Indicators)
 
 **Sources:**
 
@@ -131,16 +131,12 @@ The second dataset is a merged compilation drawing from sources like the World B
 
 **Metadata:**
 
-- **Structure:** Cross-sectional dataset using the latest available year per country (from 2014).  
+- **Structure:** Cross-sectional dataset using the latest available year per country (from 2012).  
 - **Units:** Mixed units including percentages, index scores, and GDP in USD.  
 
 ---
 
 **Variables:**
-
-- **Mental Health:**
-  - `Depression_Rates` – Estimated prevalence of depression (%)
-  - `AnxietyRate_percent` – Estimated prevalence of anxiety (%)
 
 - **Inequality:**
   - `gini_index` – Gini coefficient of income inequality
@@ -163,26 +159,26 @@ The second dataset is a merged compilation drawing from sources like the World B
 
 
 ### Complementarity of the Two Datasets
-GBD offers high-quality health burden metrics (DALYs, Deaths, Prevalence), crucial for understanding the impact of mental health disorders, while the merged dataset offers explanatory variables on inequality, economic performance, environmental exposure, and housing. These datasets are complementary in structure and purpose: the GBD gives outcome measures, while the merged dataset gives potential predictors. Their integration allows for robust modeling of social determinants of mental health at the national level.
+GBD offers high-quality health burden metrics (Prevalence), crucial for understanding the impact of mental health disorders, while the merged dataset offers explanatory variables on inequality, economic performance, environmental exposure, and housing. These datasets are complementary in structure and purpose: the GBD gives outcome measures, while the merged dataset gives potential predictors. Their integration allows for robust modeling of social determinants of mental health at the national level.
 
-While I initially collected more than two datasets, the two final have complementary strengths and ability to support the causality-oriented focus of this project: exploring how inequality and structural factors relate to mental health burdens across countries.
+While I initially collected more than two datasets, the final dataset has complementary strengths and ability to support the causality-oriented focus of this project: exploring how inequality and structural factors relate to mental health burdens across countries.
 
 ### Relevance to the Topic
 
 The project's focus is on the causal relationship between inequality and mental health in low-, middle-, and high-income countries. The selected datasets are ideal because:
 
-The GBD dataset provides mental health burden metrics (e.g., DALYs lost to depression or anxiety), which are essential for measuring the societal impact of mental disorders across countries.
+The GBD dataset provides mental health burden metrics (e.g., Prevalence of depression or anxiety), which are essential for measuring the societal impact of mental disorders across countries.
 
 The merged dataset allows for correlational and regression analyses of how inequality indicators (e.g., Gini index, top 10% wealth share, housing burden) , wealth, economic performance, and environmental factors relate to mental health prevalence.
 
 Both datasets cover a wide range of countries, including those outside the high-income bracket, which aligns with the study's comparative angle.
 
 ### Limitations of the Data
-Despite their strengths, both datasets have limitations:
+Despite their strengths, datasets have limitations:
 
 GBD data, though standardized, aggregate country-level estimates, potentially masking subnational disparities and cultural variation in diagnosis/reporting.
 
-The merged dataset suffers from missing data for certain indicators in low-income countries, which could bias regression results or reduce sample size.
+The multi-sourced data suffers from missing data for certain indicators in low-income countries, which could bias regression results or reduce sample size.
 
 Differences in data collection years (some indicators are 2021, others 2022 or 2023) may introduce temporal misalignment.
 
@@ -194,7 +190,6 @@ Self-reported or perception-based indicators (e.g., corruption, employment satis
 ### 2.1 Load in the data
 
 ```{r loading data, warning=FALSE, message = F}
-#mental <- read_csv("../data/mental_illnesses_prevalence.csv")
 
 GBD <- read_csv("../data/Global-Burden-of-Disease-Study.csv")
 #GBD <- read_csv("../data/Global-Burden-of-Disease-Study/IHME-GBD_2021_DATA-3c361732-1.csv")
@@ -205,7 +200,6 @@ corruption_index <- read_excel("../data/corruption_index.xlsx")
 housing_cost_over_income <- read_csv("../data/house_price_to_income.csv")
 gov_spending_toGDP <-read_excel("../data/gov_spending_toGDP.xlsx")
 population <- read_csv("../data/population.csv")
-
 air_polution <- read_csv("../data/air_polution_who.csv")
 uneml_rate <- read_csv("../data/unemployment_rate.csv")
 percent_wealth_10 <- read_csv("../data/10percent_wealth/Income share held by highest 10%.csv")
@@ -232,13 +226,6 @@ urban_data <- WDI(
 ```
 
 ### 2.2 Checking the structure 
-
-```{r mental data}
-# checking structure of mental dataset
-dim(mental)
-names(mental)
-head(mental)
-```
 
 ```{r gini data}
 # checking structure of dataset gini
@@ -433,8 +420,6 @@ wealth10_long <- percent_wealth_10 %>%
   ) %>%
   select(country, wealth_share_10, year) %>%
   filter(year >= 2012)
-
-head(wealth10_long)
 ```
 
 ```{r GBD data rename cols}
@@ -711,21 +696,19 @@ merged_data %>%
   theme_minimal()
 
 ```
-```{r}
+```{r War_in_Ukraine}
 merged_data %>%
   filter(Entity == "Ukraine",
          cause == "Depressive disorders") %>%
   ggplot(aes(x = Year, y = val_percent)) +
   geom_line(color = "#0072B2", size = 1.2) +
-  geom_vline(xintercept = 2014, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = 2015, linetype = "dashed", color = "red") +
   labs(
     title = "Depressive Disorder Rates in Ukraine Before and After Conflict (2014)",
     x = "Year",
     y = "Rate (%)"
   ) +
   theme_minimal()
-
-``
 ```
 
 
@@ -917,7 +900,7 @@ for (var in logs) {
   }
 ```
 
-```{r}
+```{r heat_map, fig.width=16, fig.height=12, dpi=300}
 # Calculate correlation matrix
 cor_matrix_log <- merged_data_log %>%
   select(log_eating, log_gdp_per_capita, log_wealth_share_10,  log_unemployment_rate, log_population, log_PM2.5,
