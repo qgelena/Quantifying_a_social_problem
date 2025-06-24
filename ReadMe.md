@@ -20,7 +20,7 @@
 
 *Unit of observation:* Country-year-cause.
 
-** Multi-source dataset: World Bank & World Population Review–Compiled Dataset (Merged Socioeconomic Indicators)**
+**Multi-source data: World Bank & World Population Review–Compiled Dataset (Merged Socioeconomic Indicators)**
 
 **Sources:**
 - World Bank. (n.d.). *World Development Indicators (WDI)* – GDP per capita, urbanization, population. [World Bank WDI](https://databank.worldbank.org/source/world-development-indicators)  
@@ -35,6 +35,9 @@
 - **Units:** Mixed units including percentages, index scores, and GDP in USD.  
 
 **Variables:**
+
+- **Demographic:**
+- `population` – Total population by country (in millions), used for scaling comparisons across countries.
 
 - **Inequality:**
   - `gini_index` – Gini coefficient of income inequality

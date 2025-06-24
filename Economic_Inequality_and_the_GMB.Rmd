@@ -1,6 +1,7 @@
 ---
 title: "Economic Inequality and the Global Mental health Burden"
-author: "Alona Sychevska, 2769408"
+author: "Alona Sychevska, 2769408,
+  Tutorial lecturer's name: Chantal Schouwenaar, Jack Fitzgerald"
 date: "June 5, 2025"
 output: 
   pdf_document:
@@ -22,48 +23,39 @@ library(naniar)
 library(reshape2) 
 library(sf)
 library(viridis)
-
 ```
-
-Alona Sychevska
-
-Tutorial lecturer's name: Chantal Schouwenaar, Jack Fitzgerald
 
 ## 1 Problem Motivation & Literature
 
 ### Why It’s a Recognized Social Problem
 
-Mental health issues such as depression and anxiety are on the rise globally—not only in high-income countries like the Netherlands or the UK, but also across low- and middle-income countries (LMICs). According to the WHO, mental disorders are among the leading causes of disability worldwide, and their burden is projected to grow (World Health Organization, 2023).
+Mental health issues like depression and anxiety are rising worldwide—not only in high-income countries like the Netherlands or UK but also in low- and middle-income countries (LMICs). The WHO lists mental disorders among the top causes of disability globally, with burdens expected to increase (World Health Organization, 2023).
 
-A growing body of literature suggests that **economic inequality**, rather than just poverty or absolute income, is a key social determinant of mental health. Studies have found that countries with higher levels of income inequality tend to have higher rates of psychological distress, even after controlling for GDP per capita and other macroeconomic indicators (Wilkinson & Pickett, 2009).
+Research shows **economic inequality**, more than poverty or income alone, strongly predicts mental health problems. Higher income inequality correlates with greater psychological distress even after accounting for GDP per capita (Praeg, Mills, & Wittek, 2014).
 
-A systematic review of 26 studies—primarily from high-income countries—found that greater income inequality is associated with a 19% increased risk of depression (Patel et al., 2018). While most of this literature focuses on wealthy countries, studies in LMICs have also confirmed that poverty and inequality significantly predict common mental disorders (Lund et al., 2010).
-
-More recent cross-continental studies have demonstrated that income inequality not only exacerbates anxiety and depression in high-income countries, but also in emerging and developing economies, reinforcing the need for a more globally inclusive analysis (Patel et al., 2022).
+A review focusing mainly on high-income countries found income inequality increases depression risk by 19% (Patel et al., 2018). LMIC studies confirm poverty and inequality also predict common mental disorders (Lund et al., 2010). Cross-continental research reinforces that inequality worsens anxiety and depression across all economies, emphasizing the need for global analysis (Shahbazi, Shahbazi, & Poorolajal, 2022).
 
 ### Theoretical Framing & Mechanisms
 
-Several mechanisms help explain how economic inequality may drive mental health problems:
+Economic inequality affects mental health through:
 
-* **Relative deprivation**: People evaluate their well-being not in absolute terms but in comparison to others. This social comparison can lead to chronic stress and lower self-worth, especially in unequal societies (Smith et al., 2012).
-
-* **Social capital erosion**: Inequality weakens social cohesion and trust, contributing to social exclusion and loneliness, which are known risk factors for mental illness (Kawachi & Berkman, 2000).
-* **Bidirectional poverty–mental health link**: Mental illness can both result from and reinforce poverty, creating a feedback loop that is particularly severe in LMICs (Lund et al., 2010).
+- **Relative deprivation**: Social comparison breeds chronic stress and lowers self-worth (Smith et al., 2012).
+- **Social capital erosion**: Inequality weakens trust and cohesion, increasing loneliness and mental illness risk (Kawachi & Berkman, 2000).
+- **Poverty–mental health loop**: Mental illness and poverty reinforce each other, especially in LMICs (Lund et al., 2010).
 
 ### Gap in the Literature
 
-While many studies link income inequality (often using the Gini index) to mental health, most focus on high-income countries and treat other economic indicators like GNI or GDP per capita as background controls rather than central variables.
+Most studies link inequality (via Gini) to mental health in high-income settings, treating GNI or GDP per capita as controls. Few examine Gini, GNI, and GDP per capita together, especially in LMICs where mental health burdens are rapidly growing.
 
-Few studies explicitly examine Gini, GNI, and GDP per capita together to understand their combined impact on mental health—especially in low- and middle-income countries, where the mental health burden is growing fastest.
+This project fills that gap by analyzing how these economic factors jointly influence mental health across diverse countries.
 
-This project addresses that gap by analyzing how these core economic factors jointly relate to mental health outcomes across a diverse set of countries.
 
 ## 2 Data Sourcing & Description
 ### Data Sources and Credibility
   
-This project integrates datasets: the Global Burden of Disease (GBD) Study 2021 and a multi-sourced datasets compiled from the World Bank (WDI), OECD, and other internationally reputable institutions that includes socioeconomic variables.
+This project integrates datasets: the Global Burden of Disease (GBD) and multi-sourced data compiled from the World Bank (WDI), OECD, and other internationally reputable institutions that includes socioeconomic variables.
 
-The GBD Study is produced by the Institute for Health Metrics and Evaluation (IHME) at the University of Washington. It is considered the gold standard for global health statistics and is widely cited by academic institutions and policymakers worldwide (IHME, 2022).
+The GBD Study is produced by the Institute for Health Metrics and Evaluation (IHME) at the University of Washington. It is considered the gold standard for global health statistics and is widely cited by academic institutions and policymakers worldwide (Global Burden of Disease Collaborative Network, 2024).
 
 The compilation of datasets drawing from sources like the World Bank’s World Development Indicators (WDI), and World Population Review. These are recognized institutions known for robust methodologies and transparency. WDI, in particular, is frequently used in cross-country empirical studies due to its consistency and broad temporal coverage.
 
@@ -79,7 +71,7 @@ While I initially collected more than two datasets, the final dataset has comple
 
 The project's focus is on the causal relationship between inequality and mental health in low-, middle-, and high-income countries. The selected datasets are ideal because:
 The GBD dataset provides mental health burden metrics (e.g., Prevalence of depression or anxiety), which are essential for measuring the societal impact of mental disorders across countries.
-The merged dataset allows for correlational and regression analyses of how inequality indicators (e.g., Gini index, top 10% wealth share), and economic performance relate to mental health prevalence.
+The merged dataset allows for correlational and regression analyses of how inequality indicators (Gini index), and economic performance relate to mental health prevalence.
 Datasets cover a wide range of countries, including those outside the high-income bracket, which aligns with the study's comparative angle.
 
 ### Limitations of the Data
@@ -95,12 +87,11 @@ Mental health prevalence estimates from sources like World Population Review may
 GBD <- read_csv("./data/Global-Burden-of-Disease-Study.csv")
 gni_by_country_year <- read_excel("./data/gni_by_country_year.xlsx")
 economic_inequality_gini_index <- read_csv("./data/economic-inequality-gini-index/economic-inequality-gini-index.csv")
-percent_wealth_10 <- read_csv("./data/10percent_wealth/Income share held by highest 10%.csv")
 population <- read_csv("./data/population.csv")
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # Pull GDP per capita data
-  gdp_data <- WDI(
+gdp_data <- WDI(
   country = "all",
   indicator = "NY.GDP.PCAP.CD",  # GDP per capita (current US$)
   start = 2012,
@@ -129,8 +120,8 @@ head(gni_by_country_year %>% select(Country, "2014", "2015", "2020"), 2)
 ### 2.3 Quantifying
 ###  Data cleaning
 
-```{r creating gini cats}
-#new var: gini_bucket
+### Creating new variable: gini_bucket
+```{r creating_gini_cats}
 economic_inequality_gini_index <- economic_inequality_gini_index %>%
   filter(Year >= 2012) %>%
   rename("Gini_index" = 
@@ -146,17 +137,17 @@ gini_cats <- economic_inequality_gini_index %>%
   ))
 ```
 
-To facilitate group-wise comparisons and enhance interpretability, we created a new categorical variable, gini_bucket, based on the continuous Gini index. Countries were grouped into three inequality categories: Low (< 0.25), Moderate (0.25–0.35), and High (> 0.35). This transformation allows for easier comparison across inequality levels, especially in visualizations and descriptive analyses. While some granularity is lost by binning continuous values, this approach improves clarity and supports the identification of broader patterns in mental health outcomes across different levels of income inequality.
+To facilitate group-wise comparisons and enhance interpretability, a new categorical variable—gini_bucket—was created based on the continuous Gini index. Countries were grouped into three inequality categories: Low (< 0.25), Moderate (0.25–0.35), and High (> 0.35). This transformation enables easier comparison across inequality levels, particularly in visualizations and descriptive analyses. Although some granularity is lost by converting continuous values into bins, the approach improves clarity and supports the identification of broader patterns in mental health outcomes across varying levels of income inequality.
 
-```{r gdp_data_filtering}
-# Select only the columns needed, no duplicates
+```{r gdp_data_filtering, include=FALSE}
+# select only the columns needed, no duplicates
 gdp_data <- gdp_data %>%
   select(country, year, NY.GDP.PCAP.CD) %>%
   rename(gdp_per_capita = NY.GDP.PCAP.CD) %>%
   filter(year >= 2012)
 ```
 
-```{r gni data}
+```{r gni_data}
 gni_by_country_year <- gni_by_country_year %>%
   rename("2016" = "...31", "2017" = "...32", "2018" = "...33", "2019" = "...34") %>%
   pivot_longer(
@@ -171,6 +162,15 @@ gni_by_country_year <- gni_by_country_year %>%
   filter(year >= 2012)
 ```
 
+```{r include=FALSE}
+gni_by_country_year <- gni_by_country_year %>%
+  mutate(income_group = recode(income_group,
+                               "H"  = "High income",
+                               "UM" = "Upper-middle income",
+                               "LM" = "Lower-middle income",
+                               "L"  = "Low income"))
+```
+
 ```{r population_data, include=FALSE}
 population <- population %>%
   rename(name = Entity, pop_est = "Population (historical)", pop_year = Year) %>%
@@ -178,23 +178,22 @@ population <- population %>%
   filter(pop_year >= 2012)
 ```
 
-```{r GBD data rename cols, include=FALSE}
+All datasets were filtered to include only data from 2012 onward, and unnecessary columns or duplicates were removed. Variables were renamed for clarity, and formats were standardized (e.g., reshaping wide GNI data to long format, converting ".." to missing values). These steps ensured consistency across datasets and prepared the data for merging and analysis.
+
+```{r GBD_data_&_population_data_merging, include=FALSE}
 #renaming col names
 GBD <- GBD %>%
   rename(Country = location_name, cause = cause_name, Year = year)
-```
 
-I filtered all datasets to include only data from 2012 onward and removed unnecessary columns or duplicates. Variables were renamed for clarity, and formats were standardized (e.g., reshaping wide GNI data to long format, converting ".." to missing values). These steps ensured consistency across datasets and prepared the data for merging and analysis.
-
-```{r GBD_data_&_population_data_merging, include=FALSE}
 GBD <- GBD %>%
   inner_join(population,
             by = c("Country" = "name", "Year" = "pop_year"))
 ```
-### Creating new variables: pearcent and rate of depression by country
 
-```{r percent and_rate_of_depression_new_vars_creation}
-# Calculate rate per 100,000 and percent
+### Creating new variables: percent and rate of depression by country
+
+```{r percent_and_rate_of_depression_new_vars_creation}
+# rate per 100,000 and percent
 GBD <- GBD %>%
   filter(metric_name == "Number", measure_name == "Prevalence") %>%
   mutate(
@@ -203,12 +202,10 @@ GBD <- GBD %>%
     val_percent = (val / pop_est) * 100
   ) %>%
   select(Country, cause, Year, val_rate, val_percent, pop_est) %>%
-  #pivot_wider(names_from = cause,
-  #             values_from = val_rate) %>%
   filter(Year >= 2012)
 ```
 
-To standardize mental health prevalence data across countries with different population sizes, we created two new variables: val_rate, representing the number of cases per 100,000 population, and val_percent, indicating the proportion of the population affected by a disorder as a percentage. These transformations ensure comparability across countries and time periods, regardless of absolute population size. The per-100,000 rate (val_rate) is commonly used in public health reporting, while the percentage (val_percent) is helpful for interpreting the relative burden of disorders within a country’s population.
+To standardize mental health prevalence data across countries with varying population sizes, two new variables were created: val_rate, representing the number of cases per 100,000 population, and val_percent, indicating the proportion of the population affected by a disorder as a percentage. These transformations ensure comparability across countries and time periods, regardless of absolute population size. The per-100,000 rate (val_rate) is commonly used in public health reporting, while the percentage (val_percent) aids in interpreting the relative burden of disorders within a country’s population.
 
 ### 2.4 Datasets merging
 
@@ -221,13 +218,14 @@ merged_data <- GBD %>%
 ```{r merg, include=FALSE}
 merged_data <- merged_data %>%
   inner_join(gni_by_country_year,by = c("Country" = "Country", "Year" = "year"))
+
 merged_data <- merged_data %>%
   inner_join(gdp_data, by = c("Country" = "country", "Year" = "year"))
 ```
 
 To ensure consistency and minimize missing values, datasets were merged using inner_join. This method retains only rows with complete matches across key variables (Country and Year), which helps maintain data integrity for comparative analysis. While this approach may reduce the overall number of observations, it avoids issues introduced by incomplete records and ensures that all included data points are reliable and consistent across mental health, inequality, GDP, and income classification data.
 
-```{r missiness_plot,  fig.width=5, fig.height=2.5}
+```{r missiness_plot,  fig.width=4.5, fig.height=2}
 gg_miss_var(merged_data, show_pct = TRUE)
 ```
 
@@ -299,7 +297,7 @@ tendencies <- merged_data %>%
   select(cause, Year, avg_val_percent)
 ```
 
-```{r plot, tendencies, stacked_bar, fig.width=9, fig.height=5, fig.align="center"}
+```{r plot_tendencies_stacked_bar, echo=F, fig.width=7.5, fig.height=5, fig.align="center"}
 tendencies$cause <- gsub("Attention-deficit/hyperactivity disorder", "ADHD", tendencies$cause)
 
 ggplot(tendencies, 
@@ -310,26 +308,26 @@ ggplot(tendencies,
   labs(
     title = "Mental Health Average Percent by Disorders Over Time",
     x = "Year",
-    y = "Percent"
+    y = "Average Percent"
   ) +
   theme_minimal(base_size = 12) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_text(face = "bold", size = 12),
+    plot.title = element_text(face = "bold", size = 11),
     strip.text = element_text(face = "bold"),
-    legend.text = element_text(size = 9),
-    legend.title = element_text(size = 10)
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 9)
   )
 ```
 The figure shows the average percentage prevalence of five major mental health disorders — Depressive disorders, Anxiety disorders, Bipolar disorder, Eating disorders, and ADHD — over several years. Each disorder is presented in a separate facet for clearer comparison, with the y-axis scaled independently to reflect differences in prevalence magnitude.
 
 Key observations include:
 
-Depressive disorders consistently have the highest average prevalence, hovering between approximately 4% and 4.5%, with a slight upward trend over the years.
+Depressive disorders consistently show the highest average prevalence, remaining relatively stable between 4.2% and 4.4%, with a slight upward trend over time.
 
-Anxiety disorders follow a similar pattern, also with mild fluctuations.
+Anxiety disorders exhibit a comparable pattern but at slightly higher rates, ranging from 5% to 5.3%, with mild fluctuations and a noticeable increase in 2020.
 
-Bipolar disorder and ADHD exhibit much lower prevalence values (around 0.7% to 1%), remaining relatively stable over time without clear upward or downward trends.
+Bipolar disorder and ADHD exhibit much lower prevalence values, remaining relatively stable over time without clear upward or downward trends.
 
 Eating disorders show the lowest prevalence overall but display a slight increase in recent years.
 
@@ -353,11 +351,12 @@ prevalence_depr <- prevalence_depr %>%
 
 ```{r depressive-trend-plot, echo=FALSE, fig.height=4, fig.width=7}
 ggplot(prevalence_depr, aes(x = Year, y = val_percent, color = Country_Label)) +
-  geom_line(size = 0.5) +
+  geom_line(linewidth = 0.5) +
   geom_point(size = 1) +
   scale_y_continuous(labels = scales::label_comma()) +
   labs(
-    title = "Percent of Depressive Disorders by Year | Top 2 Countries per Income Group",
+    title = "Percent of Depressive Disorders by Year |
+    Top 2 Countries per Income Group",
     x = "Year", y = "Percent of Cases", color = "Country"
   ) +
   theme_minimal(base_size = 12)
@@ -366,19 +365,19 @@ This line plot shows the percentage of depressive disorder cases over several ye
 
 Key points:
 
-High-income countries (e.g., Portugal, Greece) consistently report higher prevalence rates, generally between 5.6% and 7%, with some fluctuations.
+- High-income countries (e.g., Portugal, Greece) consistently report higher prevalence percent, generally between 5.6% and 7%, with some fluctuations.
 
-Upper-middle-income countries (e.g., Brazil) exhibit moderate prevalence around 4% to 5+, with mild variation over time, and a jump during the COVID time.
+- Upper-middle-income countries (e.g., Brazil) exhibit moderate prevalence around 4% to 5+, with mild variation over time, and a jump during the COVID time.
 
-Lower-middle- and low-income countries (e.g., India) tend to have lower prevalence, though some show slight upward or downward trends.
+- Lower-middle- and low-income countries (e.g., India) tend to have lower prevalence, though some show slight upward or downward trends.
 
 The data reveal a clear pattern where higher-income countries report higher rates of depressive disorders, while lower-income groups show comparatively lower prevalence, emphasizing economic context’s role in mental health.
 
 This graph highlights important disparities in depressive disorder prevalence across economic groups, underscoring the need for income-sensitive mental health strategies.
 
-```{r depressive-trend-plot2}
+```{r anxiety-trend-plot2, fig.height=3, fig.width=7}
 dep_anx %>%
-  filter(cause == "Depressive disorders", Year == 2020) %>%
+  filter(cause == "Anxiety disorders", Year == 2020) %>%
   group_by(income_group) %>%
   slice_max(order_by = val_percent, n = 2, with_ties = FALSE) %>%
   ungroup() %>%
@@ -386,88 +385,69 @@ dep_anx %>%
   geom_col() +
   coord_flip() +
   labs(
-    title = "Top 2 Countries per Income Group (Depression, 2020)",
+    title = "Top 2 Countries per Income Group (Anxiety, 2020)",
     x = "Country",
-    y = "Depression Rate (%)"
+    y = "Anxiety Percent (%)"
   ) +
   theme_minimal()
 ```
-**Top Countries per Income Group: Depression Prevalence in 2020**
+**Top Countries per Income Group: Anxiety Prevalence in 2020**
 
-To better understand the global distribution of mental health burdens, we analyzed the prevalence of depressive disorders across countries and income groups using 2020 data. The chart below displays the top two countries with the highest reported rates of depression within each World Bank income classification: High income (H), Upper-middle income (UM), and Lower-middle income (LM).
-
-**Methodology**
-
-The data was filtered from a larger dataset (dep_ann) to include only entries where the reported cause was “Depressive disorders” and the year was 2020. The data was grouped by income group, and the two countries with the highest depression prevalence percentages (val_percent) were selected within each group. A horizontal bar chart was produced using ggplot2 in R, with each income group represented by a distinct color. The depression rates were visualized to facilitate cross-group comparisons.
+This chart shows the top two countries with the highest anxiety rates in 2020 within each World Bank income group: High, Upper-middle, and Lower-middle income.
 
 **Findings**
 
-* High-Income Countries (H):
+* High-Income: Portugal and Switzerland lead in anxiety prevalence. Portugal’s rates may reflect lingering effects of the Eurozone debt crisis, youth unemployment, and austerity. Switzerland’s anxiety may relate to social pressure, isolation, and greater mental health awareness.
 
-  * Portugal and Greece had the highest depression rates among high-income nations.
-  * These findings may reflect the lingering socio-economic effects of the 2008–2012 European debt crisis, high youth unemployment, and austerity measures, particularly in Southern Europe.
-  
-* Upper-Middle-Income Countries (UM):
-  * Belarus and Brazil were the most affected in this group.
-  * In Brazil, rising urban violence, social inequality, and healthcare system strain could contribute to widespread mental health challenges.
-  * Belarus may reflect mental health impacts of political instability, economic stress, and underreporting of health burdens in prior years.
+* Upper-Middle-Income: Peru and Brazil have the highest rates. Brazil faces urban violence, inequality, and healthcare strain. Peru’s challenges include political instability and economic volatility.
 
-* Lower-Middle-Income Countries (LM):
+* Lower-Middle-Income: Ukraine and India top this group. Ukraine’s high anxiety is linked to ongoing geopolitical conflict and economic insecurity. India’s rates may be driven by rapid urbanization, population density, limited mental health infrastructure, and improved diagnostic reporting.
 
-  * Ukraine and India had the highest reported rates.
-  * Ukraine’s high prevalence may be attributed to prolonged geopolitical conflict and economic insecurity, particularly following the 2014 crisis and ongoing tension in the region.
-  * In India, the growing burden of depression may be associated with rapid urbanization, population density, and limited mental health infrastructure, though increased awareness and diagnostic reporting could also play a role.
-
-This cross-income comparison reveals that depression is a global issue that affects both high-income and lower-income nations. Notably, the income level alone does not predict the prevalence of depressive disorders. Instead, country-specific socio-political factors, healthcare infrastructure, cultural stigma, and stress-related exposures appear to play a significant role.
-
-The visualization helps highlight key target countries within each economic bracket for further investigation or policy prioritization. It underscores the need for context-sensitive mental health strategies and investment in mental health services regardless of national income level.
+This comparison shows that anxiety is widespread across all income levels. National income alone doesn’t predict anxiety prevalence; instead, socio-political factors, healthcare access, stigma, and stress exposures play major roles. The data highlights the need for tailored mental health strategies across all economic contexts.
 
 #### 3.1.2 Spatial Analysis (Maps)
 
 ```{r for_maps, echo=FALSE}
 # Filter to depressive disorders only, select relevant columns for joining
 dep_map_data <- merged_data %>%
-  filter(cause == "Depressive disorders") %>%
+  filter(cause == "Depressive disorders", Year == 2020) %>%
   select(Country, val_percent)
 
-# Join with world data (assuming 'name' matches 'Entity')
+# Join with world data
 world_dep <- left_join(world, dep_map_data, by = c("name" = "Country"))
-
 ```
 
 
-```{r map, fig.align="center"}
-
+```{r map, fig.align="center", fig.width=5, fig.height=3}
 ggplot() +
   geom_sf(data = world, fill = "grey80", color = "white") +
   geom_sf(data = world_dep, aes(fill = val_percent)) +
   scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
-   coord_sf(xlim = c(-180, 180), ylim = c(-60, 90), expand = FALSE)+  # fixes centering
+   coord_sf(xlim = c(-180, 180), ylim = c(-60, 90), expand = FALSE)+
   theme_minimal() +
-  labs(title = "Depression Rates by Country", fill = "Rate (%)")
+  labs(title = "Depression Percent by Country", fill = "Percent (%)")
 ```
 
-### Global Distribution of Depression Rates (2020)
+### Global Distribution of Depression Percent (2020)
 
-To provide a spatial perspective on the global burden of depression, we created a choropleth map showing country-level depression prevalence for the year 2020. This visual representation helps identify regional trends and geographical disparities that might be missed in purely tabular or bar-chart formats.
+A choropleth map was created to visualize country-level depression prevalence in 2020, highlighting regional patterns and geographic disparities beyond what tables or bar charts show.
 
-**Methodology**
-The map was generated using the ggplot2 and sf packages in R. Depression data was filtered from the merged dataset (merged_data) to include only records where the cause was “Depressive disorders.” This filtered dataset was joined with global shapefile data (world) using country names as the linking key.
-The val_percent variable, representing the percentage of the population affected by depression in 2020, was used to shade each country. The viridis color scale (option = "plasma") was applied to enhance visual contrast and ensure accessibility for color-blind users. Countries without data were shaded grey.
+**Methodology**  
+Using R’s `ggplot2` and `sf` packages, depression data for “Depressive disorders” from the merged dataset was joined with global shapefiles by country name. The `val_percent` variable, indicating the population percentage affected, was mapped with a plasma viridis color scale for clarity and accessibility. Countries lacking data appear in grey.
 
-**Findings**
-* The highest prevalence rates (6–7%) appear concentrated in parts of Southern and Eastern Europe, including Portugal, Greece, and Ukraine. These regions may be affected by economic instability, post-conflict stressors, and limited access to mental health care.
-* South Asia (e.g., India) and parts of South America (e.g., Brazil) also show moderate to high depression rates. These findings suggest that mental health challenges are not confined to affluent countries but are also significant in emerging economies.
-* Lower rates (3–4%) were observed in much of Sub-Saharan Africa, Southeast Asia, and Scandinavia. However, these lower figures may reflect data limitations, underdiagnosis, or cultural stigma, rather than genuinely lower mental health burdens.
-* Data gaps are visible in some regions (e.g., parts of Africa and Central Asia), shown in grey. This highlights the need for improved data collection and reporting on mental health in low-resource settings.
+**Findings**  
+- Highest rates (6–7%) are seen in Southern and Eastern Europe (e.g., Portugal, Greece, Ukraine), possibly linked to economic instability, post-conflict stress, and limited mental health care.  
+- South Asia (India) and parts of South America (Brazil) show moderate to high rates, indicating significant mental health challenges in emerging economies.  
+- Lower rates (3–4%) appear in much of South America, Southeast Asia, though this may reflect underdiagnosis or cultural stigma rather than lower prevalence.  
+- Data gaps (grey areas) exist in regions like Africa and Central Asia, signaling a need for improved mental health data collection.
 
-**Interpretation and Implications**
-This spatial analysis emphasizes that depression is a global health issue with uneven geographic distribution. While higher-income countries tend to report more diagnoses—possibly due to better awareness and mental health infrastructure—countries with fewer resources may underreport due to stigma or systemic barriers.
-The map suggests that mental health policies must be adapted to regional needs, taking into account local economic, cultural, and healthcare contexts. It also underscores the necessity for more comprehensive global surveillance of mental health disorders to inform international health strategies and funding priorities.
+**Implications**  
+Depression affects all regions unevenly. Higher-income countries report more cases, likely due to better healthcare access and awareness, while lower-income countries may underreport due to stigma and systemic barriers. Mental health policies should consider regional economic and cultural contexts, and global surveillance needs strengthening to guide effective interventions and funding.
+
 
 ### 3.1.3 Sub-population analysis
 
-```{r analysis-between-2-variables, echo=FALSE, fig.height=5, fig.width=9}
+```{r analysis-between-2-variables, echo=FALSE, fig.height=4, fig.width=7}
 # Analyze the relationship between two variables.
 dep_anx %>%
   filter(!is.na(income_group)) %>%
@@ -504,7 +484,7 @@ Key observations:
 
 The spread (ribbon width) indicates some variability within income groups but a generally steady increase across the board. This suggests that income level is associated with differences in mental health disorder prevalence, and the gradual increase points to a growing mental health challenge globally.
 
-```{r}
+```{r fig.height=3, fig.width=7}
 dep_anx %>%
   filter(!is.na(gini_bucket)) %>%
   filter(cause %in% c("Depressive disorders", "Anxiety disorders")) %>%
@@ -520,8 +500,10 @@ dep_anx %>%
     color = "Gini Bucket"
   ) +
   theme_minimal(base_size = 13) +
-  theme(strip.text = element_text(face = "bold"))
-
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 ```
 
 The graph shows the average prevalence of depressive and anxiety disorders from 2012 to 2021, categorized by low, moderate, and high income inequality (Gini index).
@@ -552,32 +534,19 @@ ggplot(ukraine_long, aes(x = Year, y = value)) +
   theme_minimal()
 ```
 
-**Event Analysis: Depression and Inequality in Ukraine since the 2014 Conflict**
+### Event Analysis: Depression and Inequality in Ukraine since 2014
 
-To examine the potential societal impacts of geopolitical conflict, this analysis explores Ukraine’s trends in income inequality and depression prevalence, focusing on the years surrounding the 2014 conflict and subsequent instability.
+This analysis examines Ukraine’s income inequality (Gini index) and depression prevalence from 2012 to 2020, focusing on changes after the 2014 conflict.
 
-**Data and Visualization**
+**Data and Visualization**  
+Trends in inequality and depression are shown side-by-side, with 2014 marked as the conflict start.
 
-This panel plot uses data from Ukraine between 2012 and 2020. Two key indicators were extracted:
+**Findings**  
+- **Income Inequality:** The Gini index rose from ~0.24 to ~0.26 after 2014, reflecting economic disruption from political instability and territorial losses.  
+- **Depression:** Percentages were stable before 2014 but increased significantly after 2015, peaking around 2020, likely due to trauma, insecurity, and reduced healthcare access.
 
-* Gini index (a measure of income inequality)
-* Prevalence of depressive disorders (val_percent)
-Data were transformed into long format to allow side-by-side trend visualization, with each variable plotted in its own facet. A vertical red dashed line marks the year 2014, used here as a start of conflict reference point.
-
-**Findings**
-
-* Income Inequality (Gini Index):
-
-  The Gini index shows a noticeable increase post-2014, rising from \~0.24 to more than \~0.26. While this may appear modest, the trend is directionally consistent with economic dislocation caused by political instability, currency devaluation, internal displacement, and loss of key economic regions (e.g., Donbas, Crimea).
-* Depression Prevalence:
-
-  Depression rates were stable or slightly declining up to 2014 but began to rise significantly after 2015, reaching a local peak by 2020. This pattern is consistent with trauma-related mental health effects, economic insecurity, and reduced access to healthcare—all of which are documented consequences of conflict.
-  
-**Interpretation and Context**
-
-The diverging post-2014 trajectories in both indicators—rising inequality and rising depression—support the hypothesis that armed conflict and socio-political shocks can exacerbate both economic and psychological distress. Notably, the delayed increase in depression suggests a lagged effect, where the full mental health consequences of conflict take time to materialize and be captured in surveys or health systems.
-
-These findings align with studies showing that prolonged crises compound vulnerability, especially in health and economic systems already under strain. The data also emphasize the need for integrated policy responses—targeting both economic recovery and mental health support—in post-conflict contexts.
+**Interpretation**  
+Rising inequality and depression post-2014 suggest conflict worsens both economic and mental health challenges, with a delayed mental health impact. These results highlight the need for coordinated economic and mental health policies in post-conflict recovery.
 
 ## 4 Discussion
 
@@ -585,13 +554,13 @@ These findings align with studies showing that prolonged crises compound vulnera
 
 Analysis of temporal, spatial, and subgroup patterns reveals significant disparities in mental health disorder prevalence across time, income levels, and geography.
 
-Temporal Trends: Depression and anxiety consistently show the highest global burden, with slight upward trends over time. While ADHD, bipolar, and eating disorders remain less prevalent, their relative stability may mask localized spikes or diagnostic gaps.
+**Temporal Trends:** Depression and anxiety consistently show the highest global burden, with slight upward trends over time. While ADHD, bipolar, and eating disorders remain less prevalent, their relative stability may mask localized spikes or diagnostic gaps.
 
-Cross-Country and Income Comparisons: High-income countries like Portugal and Greece exhibit the highest rates of depression, while low- and lower-middle-income countries show lower averages. This could reflect better diagnosis and awareness in wealthier nations, or underreporting and stigma in resource-limited settings. Notably, countries such as Ukraine and India show unexpectedly high rates, likely driven by socio-political instability and rapid societal change.
+**Cross-Country and Income Comparisons:** High-income countries like Portugal and Greece exhibit the highest rates of depression, while low- and lower-middle-income countries show lower averages. This could reflect better diagnosis and awareness in wealthier nations, or underreporting and stigma in resource-limited settings. Notably, Ukraine's data shows high rates, likely driven by socio-political instability and rapid societal change.
 
-Spatial Patterns: Choropleth maps highlight regional clusters—Southern and Eastern Europe, parts of South Asia, and South America—with above-average depression rates. In contrast, lower figures in Sub-Saharan Africa and Southeast Asia may indicate underdiagnosis rather than lower burden.
+**Spatial Patterns:** Choropleth maps highlight regional clusters—Southern and Eastern Europe, parts of South Asia, and South America—with above-average depression rates. In contrast, lower figures in Southeast Asia may indicate underdiagnosis rather than lower burden.
 
-Subpopulation Insights: Income group analysis confirms that wealthier nations report higher average disorder rates, though all groups show a gradual increase over time. Similarly, a positive association is visible between inequality (Gini index) and disorder prevalence, reinforcing the connection between socioeconomic disparities and mental health outcomes.
+**Subpopulation Insights:** Income group analysis confirms that wealthier nations report higher average disorder rates, though all groups show a gradual increase over time. Similarly, a positive association is visible between inequality (Gini index) and disorder prevalence, reinforcing the connection between socioeconomic disparities and mental health outcomes.
 
 ## 5 Reproducibility
 
@@ -599,12 +568,20 @@ Subpopulation Insights: Income group analysis confirms that wealthier nations re
 
 https://github.com/qgelena/Quantifying_a_social_problem/tree/main
 
-### 5.2 Reference list
+### 5.2 Reference List
 
-* Kawachi, I., & Berkman, L. F. (2000). Social cohesion, social capital, and health. *Social Epidemiology*, 174–190.
-* Lund, C., Breen, A., Flisher, A. J., Kakuma, R., Corrigall, J., Joska, J. A., ... & Patel, V. (2010). Poverty and common mental disorders in low and middle income countries: A systematic review. *Social Science & Medicine, 71*(3), 517–528. [https://doi.org/10.1016/j.socscimed.2010.04.027](https://doi.org/10.1016/j.socscimed.2010.04.027)
-* Patel, V., Burns, J. K., Dhingra, M., Tarver, L., Kohrt, B. A., & Lund, C. (2018). Income inequality and depression: A systematic review and meta-analysis of the association and a scoping review of mechanisms. *World Psychiatry, 17*(1), 76–89. [https://doi.org/10.1002/wps.20492](https://doi.org/10.1002/wps.20492)
-* Patel, V., Saxena, S., Lund, C., Thornicroft, G., Baingana, F., Bolton, P., & UnÜtzer, J. (2022). The Lancet Commission on global mental health and sustainable development. *The Lancet, 392*(10157), 1553–1598. [https://doi.org/10.1016/S0140-6736(18)31612-X](https://doi.org/10.1016/S0140-6736%2818%2931612-X)
-* Smith, K. E., Bambra, C., Hill, S. E., & Watt, R. G. (2012). Health inequalities and the social determinants of health: What works? *Journal of Public Health, 34*(4), 523–529. [https://doi.org/10.1093/pubmed/fds052](https://doi.org/10.1093/pubmed/fds052)
-* Wilkinson, R., & Pickett, K. (2009). *The Spirit Level: Why more equal societies almost always do better*. London: Allen Lane.
-* World Health Organization. (2023). *Mental health*. [https://www.who.int/health-topics/mental-health](https://www.who.int/health-topics/mental-health)
+Global Burden of Disease Collaborative Network. (2024). *Global Burden of Disease Study 2021 (GBD 2021)*. Institute for Health Metrics and Evaluation. https://www.healthdata.org/research-analysis/gbd 
+
+Kawachi, I., & Berkman, L. F. (2000). Social cohesion, social capital, and health. In *Social Epidemiology* (pp. 174–190).
+
+Lund, C., Breen, A., Flisher, A. J., Kakuma, R., Corrigall, J., Joska, J. A., ... & Patel, V. (2010). Poverty and common mental disorders in low and middle income countries: A systematic review. *Social Science & Medicine, 71*(3), 517–528. https://doi.org/10.1016/j.socscimed.2010.04.027
+
+Patel, V., Burns, J. K., Dhingra, M., Tarver, L., Kohrt, B. A., & Lund, C. (2018). Income inequality and depression: A systematic review and meta-analysis of the association and a scoping review of mechanisms. *World Psychiatry, 17*(1), 76–89. https://doi.org/10.1002/wps.20492
+
+Praeg, P., Mills, M., & Wittek, R. (2014). Income and income inequality as social determinants of health: Do social comparisons play a role? *European Sociological Review, 30*(2), 218–229. https://doi.org/10.1093/esr/jct035
+
+Shahbazi, F., Shahbazi, M., & Poorolajal, J. (2022). Association between socioeconomic inequality and the global prevalence of anxiety and depressive disorders: An ecological study. *General Psychiatry, 35*(3), e100735. https://doi.org/10.1136/gpsych-2021-100735
+
+Smith, K. E., Bambra, C., Hill, S. E., & Watt, R. G. (2012). Health inequalities and the social determinants of health: What works? *Journal of Public Health, 34*(4), 523–529. https://doi.org/10.1093/pubmed/fds052
+
+World Health Organization. (2023). *Mental health*. https://www.who.int/health-topics/mental-health
